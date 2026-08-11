@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wording rating study</title>
+<script src="https://cdn.jsdelivr.net/npm/jspsych@7.3.4/dist/index.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@jspsych/plugin-survey-html-form@1.0.2/dist/index.browser.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jspsych@7.3.4/css/jspsych.css">
+<style>
+ body{background:#faf9f7;color:#1a1a1a;font-family:-apple-system,Segoe UI,Roboto,sans-serif;}
+ #jspsych-target{min-height:100vh;}
+ .wrap{max-width:680px;margin:0 auto;text-align:left;}
+ .phrase{font-size:20px;font-weight:600;background:#fff;border:1px solid #d9d9e3;border-radius:12px;padding:20px 22px;margin:6px 0 6px;text-align:center;}
+ .sub{font-size:12.5px;color:#8a8a8e;text-align:center;margin:0 0 18px;}
+ .q{font-size:14.5px;margin:16px 0 8px;line-height:1.5;}
+ .ends{display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:6px;}
+ .lk{display:flex;gap:4px;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+ .lk .opt{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-size:10.5px;color:#8a8f99;}
+ .lk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:1.6px solid #c7ccd6;border-radius:50%;cursor:pointer;background:#fff;}
+ .lk input:checked{border-color:#3366cc;background:#3366cc;box-shadow:inset 0 0 0 3.5px #fff;}
+ .jspsych-btn{background:#3366cc!important;color:#fff!important;border:1px solid #3366cc!important;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer;}
+ .jspsych-content{max-width:720px!important;}
+ select{font-size:14px;padding:6px;border:1px solid #cfd3e6;border-radius:6px;}
+</style></head>
+<body><div id="jspsych-target"></div>
+<script>
+/* ===== DEPLOYMENT CONFIG — set before fielding ===== */
+const CFG = {
+  DATAPIPE_ID: "YOUR_PRERATING_DATAPIPE_ID",       // OSF DataPipe experiment ID for the PRE-RATING study
+  PROLIFIC_COMPLETION_URL: "https://app.prolific.com/submissions/complete?cc=XXXXXXXX",
+  IRB_NUMBER: "[to be inserted upon approval]"
+};
+const params=new URLSearchParams(location.search);
+const SUBJECT=params.get('PROLIFIC_PID')||('anon_'+Math.random().toString(36).slice(2,10));
+const jsPsych=initJsPsych({
+  display_element:'jspsych-target',
+  on_finish:function(){
+    var tgt=document.getElementById('jspsych-target');
+    var csv=jsPsych.data.get().csv();
+    var fname=SUBJECT+'_'+Date.now()+'.csv';
+    var go=function(){
+      if(CFG.PROLIFIC_COMPLETION_URL && CFG.PROLIFIC_COMPLETION_URL.indexOf('XXXX')===-1){
+        tgt.innerHTML='<div class="wrap" style="text-align:center;margin-top:80px"><h2>Thank you!</h2><p>Returning you to Prolific&#8230;</p></div>';
+        window.location=CFG.PROLIFIC_COMPLETION_URL;
+      }else{
+        var url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+        tgt.innerHTML='<div class="wrap" style="text-align:center;margin-top:80px"><h2>Thank you!</h2><p>Your ratings were recorded.</p><p style="color:#999;font-size:12px;margin-top:26px">Test build: <a href="'+url+'" download="'+fname+'">download this session (CSV)</a>. Set DATAPIPE_ID + PROLIFIC_COMPLETION_URL to deploy.</p></div>';
+      }
+    };
+    var fail=function(){ var url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+      tgt.innerHTML='<div class="wrap" style="margin-top:60px"><h2>Almost done</h2><p>We could not confirm your responses saved. Please <a href="'+url+'" download="'+fname+'">download the file</a> and message it to the researcher, then complete on Prolific.</p></div>'; };
+    if(CFG.DATAPIPE_ID && CFG.DATAPIPE_ID.indexOf('YOUR_')===-1){
+      tgt.innerHTML='<div class="wrap" style="text-align:center;margin-top:80px"><h2>Saving&#8230;</h2></div>';
+      fetch('https://pipe.jspsych.org/api/data/',{method:'POST',headers:{'Content-Type':'application/json','Accept':'*/*'},
+        body:JSON.stringify({experimentID:CFG.DATAPIPE_ID,filename:fname,data:csv})})
+        .then(function(r){ r.ok?go():fail(); }).catch(fail);
+    }else{ go(); }
+  }
+});
+jsPsych.data.addProperties({task:'PRERATING', task_ver:'norm1.0', subject:SUBJECT, prolific_pid:params.get('PROLIFIC_PID')||'NA'});
+
+var PHRASES=[
+ {id:'am',t:"AI can make mistakes."},{id:'ae',t:"AI can make errors."},
+ {id:'om',t:"AI output may contain mistakes."},{id:'oe',t:"AI output may contain errors."},
+ {id:'ap',t:"AI can produce mistakes."},{id:'or',t:"AI responses may contain errors."},
+ {id:'in',t:"AI output may be inaccurate."}
+];
+var DIMS=[
+ {k:'anthro',q:"This phrasing makes the AI's mistakes sound like something a <b>person</b> would do (rather than a technical/mechanical process).",l:'Not at all',r:'Very much'},
+ {k:'agency',q:"This phrasing implies the AI <b>could have done otherwise</b> (chosen not to err).",l:'Not at all',r:'Very much'},
+ {k:'severity',q:"This phrasing makes the errors sound <b>serious</b>.",l:'Not at all',r:'Very serious'},
+ {k:'softness',q:"This phrasing sounds <b>gentle / face-saving</b> (rather than blunt or harsh).",l:'Very blunt',r:'Very gentle'},
+ {k:'natural',q:"This phrasing reads <b>naturally</b> in English.",l:'Very awkward',r:'Very natural'}
+];
+function scale(n){var h='<div class="lk">';for(var v=1;v<=7;v++){h+='<label class="opt"><input type="radio" name="'+n+'" value="'+v+'" required><span>'+v+'</span></label>';}return h+'</div>';}
+function rate(p){return {type:jsPsychSurveyHtmlForm,data:{phase:'rate',phrase_id:p.id,phrase:p.t},
+  html:'<div class="wrap"><div class="phrase">'+p.t+' <span style="color:#8a8a8e;font-weight:400">Check important information.</span></div><div class="sub">Rate the phrasing above on each scale.</div>'
+    +DIMS.map(function(d){return '<div class="q">'+d.q+'</div><div class="ends"><span>'+d.l+'</span><span>'+d.r+'</span></div>'+scale(d.k);}).join('')+'</div>',
+  button_label:'Next'};}
+
+var consent={type:jsPsychSurveyHtmlForm,
+ preamble:'<div class="wrap"><h2>Wording rating study</h2>'
+  +'<p>You will rate a set of short on-screen notices (the kind shown under AI assistants) on a few scales. It takes about <b>5 minutes</b>. Open to adults 18+ fluent in English.</p>'
+  +'<ul><li>Participation is voluntary; you may stop anytime by closing the window.</li>'
+  +'<li>There are no right or wrong answers — we want your impression of the wording.</li>'
+  +'<li>Responses are anonymous; no name or contact is collected. A de-identified dataset may be shared for research.</li>'
+  +'<li>Reviewed by the Public IRB (Republic of Korea), approval no. '+CFG.IRB_NUMBER+'. Rights questions: +82-2-737-8990.</li></ul>'
+  +'<p>Conducted by Yosan Song (aSSIST, principal investigator; yosansong@gmail.com), with Prof. Sanghyun Kim (co-investigator).</p></div>',
+ html:'<div class="wrap"><label><input type="checkbox" name="c" required> I am 18+ and consent to take part.</label></div>',
+ button_label:'Continue',data:{phase:'consent'}};
+var instr={type:jsPsychSurveyHtmlForm,
+ preamble:'<div class="wrap"><h3>Instructions</h3><p>On each screen you will see one short notice phrase. Rate <b>the phrasing itself</b> on five scales (1–7). Judge the wording, not whether AI is generally good or bad. There are no correct answers.</p></div>',
+ html:'',button_label:'Start'};
+var demo={type:jsPsychSurveyHtmlForm,data:{phase:'demo'},
+ preamble:'<div class="wrap"><h3>A few quick questions</h3></div>',
+ html:'<div class="wrap"><div class="q">Age band</div><select name="age" required><option value="">—</option><option>18-24</option><option>25-34</option><option>35-44</option><option>45-54</option><option>55-64</option><option>65+</option></select>'
+  +'<div class="q">Gender</div><select name="gender" required><option value="">—</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select>'
+  +'<div class="q">How often do you use AI assistants (e.g., ChatGPT)?</div><select name="aiuse" required><option value="">—</option><option>Never</option><option>Rarely</option><option>Monthly</option><option>Weekly</option><option>Daily</option></select></div>',
+ button_label:'Finish'};
+var done={type:jsPsychSurveyHtmlForm,preamble:'<div class="wrap" style="text-align:center;margin-top:40px"><h2>Almost there</h2><p>Click Done to submit your ratings.</p></div>',html:'',button_label:'Done'};
+
+var IS_MOBILE=(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+if(IS_MOBILE){ document.getElementById('jspsych-target').innerHTML='<div class="wrap" style="margin-top:80px;text-align:center"><h2>Desktop or laptop required</h2><p>Please open this on a computer, or return the study on Prolific.</p></div>'; }
+else {
+  var timeline=[consent,instr].concat(jsPsych.randomization.shuffle(PHRASES.slice()).map(rate)).concat([demo,done]);
+  jsPsych.run(timeline);
+}
+</script></body></html>

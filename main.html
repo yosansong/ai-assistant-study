@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Assistant Study (merged v1.1 — 2×2 frame×noun, attended, error-free)</title>
+<script src="https://cdn.jsdelivr.net/npm/jspsych@7.3.4/dist/index.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@jspsych/plugin-instructions@1.1.4/dist/index.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@jspsych/plugin-html-button-response@1.2.0/dist/index.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@jspsych/plugin-survey-html-form@1.0.2/dist/index.browser.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jspsych@7.3.4/css/jspsych.css">
+<style>
+  html,body{height:100%;} body{background:#faf9f7;color:#1a1a1a;}
+  .jspsych-content{max-width:none;}
+  .chatfull{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;background:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif;text-align:left;z-index:1100;}
+  .studybar{flex-shrink:0;background:#eceef5;border-top:1px solid #d7dbe8;}
+  .studybarinner{max-width:768px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:10px;}
+  .studylbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7c81a0;}
+  #studyctrls{margin-left:auto;display:flex;gap:8px;align-items:center;}
+  .sbtn{font-size:13px;border-radius:8px;padding:7px 14px;cursor:pointer;border:1px solid #4f46e5;background:#fff;color:#4f46e5;font-weight:600;}
+  .sbtn:disabled{opacity:.4;cursor:default;}
+  #studyctrls .jspsych-btn{background:#4f46e5;color:#fff;border:1px solid #4f46e5;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;margin:0;}
+  #studyctrls .jspsych-btn:disabled{opacity:.4;}
+  .studyverify{max-width:768px;margin:0 auto;padding:10px 20px 0;}
+  .svbox{border:1px solid #cfd3e6;background:#f7f8fc;border-radius:8px;padding:9px 13px;font-size:13px;line-height:1.5;color:#33344a;}
+  .svbox.err{border-left:3px solid #d33;}
+  .svlbl{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#4f46e5;font-weight:700;margin-bottom:3px;}
+  .chattop{flex-shrink:0;border-bottom:1px solid #f0efe9;background:#fff;}
+  .chattopinner{max-width:768px;margin:0 auto;padding:11px 20px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:9px;color:#1a1a1a;}
+  .msgs{flex:1;overflow-y:auto;}
+  .msgsinner{max-width:768px;margin:0 auto;padding:24px 20px 10px;}
+  .cbar{flex-shrink:0;background:#fff;padding:4px 20px 16px;}
+  .cbarinner{max-width:768px;margin:0 auto;}
+  .abub p{margin:0 0 11px;} .abub p:last-child{margin-bottom:0;}
+  .firstexplain{font-size:11.5px;color:#8a8a8e;margin:7px 0 0;max-width:88%;line-height:1.5;}
+  .chathd{display:none;}
+  .chattopinner .dot{width:22px;height:22px;border-radius:6px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;color:#faf9f7;font-size:12px;font-weight:700;}
+  .row{display:flex;margin:14px 0;}
+  .row.user{justify-content:flex-end;}
+  .ubub{background:#ececea;color:#1a1a1a;border-radius:18px;padding:9px 15px;font-size:15px;line-height:1.5;max-width:80%;}
+  .abub{background:none;border:none;padding:2px 2px;font-size:15px;line-height:1.72;max-width:88%;color:#1a1a1a;}
+  .typing{display:flex;gap:5px;padding:6px 0;}
+  .typing span{width:7px;height:7px;border-radius:50%;background:#c4c4cc;animation:tb 1s infinite;}
+  .typing span:nth-child(2){animation-delay:.18s;} .typing span:nth-child(3){animation-delay:.36s;}
+  @keyframes tb{0%,60%,100%{opacity:.3;transform:translateY(0);}30%{opacity:1;transform:translateY(-3px);}}
+  .card{border:1px solid #dcdcd8;background:#f4f3f0;border-radius:10px;padding:10px 14px;font-size:13.5px;max-width:82%;margin:10px 0 4px;}
+  .card .ct{font-size:10.5px;letter-spacing:.07em;color:#8a8a80;font-weight:700;text-transform:uppercase;margin-bottom:4px;}
+  .actpanel{border:1px solid #cfe3d4;background:#f2f8f3;border-radius:10px;padding:0;font-size:13.5px;max-width:86%;margin:10px 0 4px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .acthead{display:flex;align-items:center;gap:8px;background:#e6f0e8;padding:7px 12px;border-bottom:1px solid #d5e6d9;}
+  .acticon{font-size:15px;line-height:1;}
+  .acttitle{font-size:10.5px;letter-spacing:.07em;color:#4a6b52;font-weight:700;text-transform:uppercase;flex:1;}
+  .actstatus{font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px;white-space:nowrap;}
+  .actstatus.running{color:#8a6d1f;background:#f5eccf;}
+  .actstatus.done{color:#2e7d46;background:#d8efdd;}
+  .actbody{padding:9px 13px;color:#3a4a3e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.5;}
+  .note{font-size:12.5px;max-width:88%;margin:8px 0 2px;background:none;border:none;padding:0;}
+  .note.ok{color:#8a8a90;}
+  .note.bad{color:#2a2a2a;border-left:2px solid #c2751a;padding-left:11px;}
+  .cite{border-bottom:1px dotted #b0b0b5;padding-bottom:1px;}
+  .srcrow{margin:8px 0 2px;max-width:88%;}
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:#5a5a5f;background:#efeee9;border:1px solid #e2e1db;border-radius:20px;padding:2px 9px;margin:2px 5px 2px 0;}
+  .studynote{max-width:88%;margin:12px 0 2px;border:1px solid #d7d5cc;background:#f3f2ec;border-radius:8px;padding:9px 13px;font-size:12.5px;line-height:1.5;color:#43433c;}
+  .studynote.err{border-left:3px solid #c2751a;}
+  .studynote .lbl{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#9a9a8e;font-weight:700;margin-bottom:3px;}
+  .composer{display:flex;align-items:center;gap:10px;margin:0;border:1px solid #d9d9e3;border-radius:26px;padding:12px 18px;background:#fff;box-shadow:0 1px 8px rgba(0,0,0,.05);}
+  .composer input{flex:1;border:none;outline:none;font-size:15px;color:#b8b8c0;background:transparent;}
+  .composer .sendbtn{width:30px;height:30px;border-radius:50%;background:#1a1a1a;color:#faf9f7;display:flex;align-items:center;justify-content:center;font-size:13px;}
+  .byfoot{font-size:13px;color:#5b5b62;font-weight:500;text-align:center;padding:10px 14px 2px;}
+  .surv{max-width:720px;margin:0 auto;text-align:left;font-family:-apple-system,Segoe UI,Roboto,sans-serif;}
+  .surv h3{font-size:18px;} .surv .inst{font-size:14.5px;color:#374151;line-height:1.6;margin-bottom:14px;}
+  .noticebox{border:1px dashed #94a3b8;background:#f8fafc;border-radius:8px;padding:8px 12px;font-size:13.5px;color:#475569;margin:0 0 14px;text-align:center;}
+  .item{border-bottom:1px solid #eceef2;padding:12px 0;}
+  .item .qt{font-size:14.5px;margin-bottom:8px;line-height:1.5;}
+  .scale{display:flex;gap:2px;align-items:flex-start;flex-wrap:wrap;}
+  .scale .anc{font-size:11px;color:#6b7280;width:92px;padding-top:2px;}
+  .scale .anc.r{text-align:right;}
+  .pt{display:flex;flex-direction:column;align-items:center;font-size:11px;color:#6b7280;flex:1;min-width:24px;}
+  .pt input{margin-bottom:2px;cursor:pointer;}
+  .sdrow{display:flex;align-items:center;gap:6px;}
+  .sdrow .pole{font-size:12.5px;color:#374151;width:118px;}
+  .sdrow .pole.r{text-align:right;}
+  textarea{width:100%;border:1.5px solid #d1d5db;border-radius:8px;padding:8px;font-size:14px;min-height:70px;font-family:inherit;box-sizing:border-box;}
+  .consent-box{max-width:820px;margin:0 auto;text-align:left;} .consent-box ul{line-height:1.6;}
+  .consent-confirm{max-width:820px;margin:18px auto 0;text-align:left;background:#fff;border:1px solid #d9d9e3;border-radius:10px;padding:14px 16px;}
+  #topbar{position:fixed;top:0;left:0;right:0;height:3px;background:#e8e8e8;z-index:1000;}
+  #pfill{height:100%;width:0;background:#4a4a4a;transition:width .35s;}
+  #jspsych-target{min-height:100vh;box-sizing:border-box;padding-top:10px;padding-bottom:28px;}
+  .krdev{display:none;font-size:12px;color:#ed7d31;border-top:1px dashed #ed7d31;margin-top:14px;padding-top:8px;}
+  body.devmode .krdev{display:block;}
+
+/* ===== v2.11 unified survey UI ===== */
+.surv{max-width:660px!important;}
+.item{padding:14px 2px!important;border-bottom:1px solid #eef0f3!important;}
+.item:last-child{border-bottom:none!important;}
+.item .qt{color:#1f2430!important;margin-bottom:10px!important;}
+.likert{display:flex;align-items:center;gap:14px;}
+.endlab{flex:0 0 92px;font-size:11.5px;color:#8b909a;line-height:1.35;}
+.endlab.r{text-align:right;}
+.opts{flex:1;display:flex;justify-content:space-between;align-items:flex-start;}
+.opt{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;margin:0;}
+.opt input{appearance:none;-webkit-appearance:none;-moz-appearance:none;width:20px;height:20px;margin:0;border:1.6px solid #c7ccd6;border-radius:50%;cursor:pointer;transition:border-color .12s, background .12s;background:#fff;}
+.opt input:hover{border-color:#8b95a6;}
+.opt input:checked{border-color:#444;background:#444;box-shadow:inset 0 0 0 3.5px #fff;}
+.opt em{font-style:normal;font-size:10.5px;color:#aeb3bd;}
+.optbtn{display:block!important;width:100%!important;max-width:600px!important;margin:9px auto!important;padding:13px 16px!important;white-space:normal;text-align:left;border:1.5px solid #d7dbe2!important;border-radius:10px!important;background:#fff!important;font-size:14px;line-height:1.45;cursor:pointer;transition:border-color .12s,background .12s;}
+.optbtn:hover{border-color:#999!important;background:#f4f4f4!important;}
+
+/* ===== v2.12 unified layout across all non-chat screens ===== */
+.jspsych-content{max-width:680px!important;width:100%!important;}
+.jspsych-content-wrapper{align-items:flex-start!important;}
+.jspsych-content-wrapper .jspsych-content{margin-top:28px!important;}
+.surv,.consent-box,.consent-confirm{max-width:100%!important;}
+#jspsych-html-button-response-btngroup{gap:3px!important;flex-wrap:wrap!important;justify-content:center!important;}
+.vstack #jspsych-html-button-response-btngroup{flex-direction:column!important;align-items:center!important;width:100%!important;}
+.corrbox{border:1px solid #e6e3da;background:#faf9f5;border-radius:8px;padding:4px 18px;margin:12px 0;}
+.corrbox ul{margin:8px 0;}
+.botlab{font-size:11.5px;color:#5f6486;font-weight:600;white-space:nowrap;}
+.bottrack{flex:1;height:5px;background:#d7dbe8;border-radius:3px;overflow:hidden;margin:0 6px;}
+.botfill{height:100%;background:#3a6ea5;width:0;transition:width .2s;}
+#studyctrls .jspsych-btn{background:#1a1a1a!important;color:#fff!important;border:none!important;border-radius:16px!important;padding:8px 22px!important;font-size:13px!important;font-weight:600!important;box-shadow:none!important;min-width:0!important;}
+
+/* ===== v2.15 global unified bottom bar (applies to every non-chat screen too) ===== */
+#gbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:#eceef5;border-top:1px solid #d7dbe8;}
+#gstudyctrls{margin-left:auto;display:flex;gap:8px;align-items:center;}
+#gstudyctrls .jspsych-btn,#gstudyctrls button,#gstudyctrls input[type=submit]{background:#1a1a1a!important;color:#fff!important;border:none!important;border-radius:16px!important;padding:8px 22px!important;font-size:13px!important;font-weight:600!important;box-shadow:none!important;min-width:0!important;margin:0!important;cursor:pointer;}
+#gstudyctrls .jspsych-btn:disabled,#gstudyctrls button:disabled{opacity:.4;cursor:default;}
+#gstudyctrls #jspsych-instructions-nav{display:flex;gap:8px;margin:0!important;}
+  .sendhint{font-size:11px;color:#9a9aa0;text-align:center;padding:7px 2px 0;}
+  .composer input:not([disabled]){color:#1a1a1a;}
+  .sendbtn.sendready{box-shadow:0 0 0 3px rgba(26,26,26,.12);cursor:pointer;}
+  #chatctrls{text-align:center;padding:6px 2px 2px;}
+  .jspsych-btn{background:#fff;color:#222;border:1px solid #cfcfcf;border-radius:6px;padding:10px 22px;font-size:14px;font-weight:500;cursor:pointer;}
+  .jspsych-btn:hover{background:#f2f2f2;}
+  .jspsych-btn:disabled{opacity:.4;cursor:default;}
+  #jspsych-instructions-back{display:none!important;}
+  #topbar .lab{font-weight:600;}
+
+/* v2.3: unified blue action buttons, blue selected radio, stable chat footer (no layout jump) */
+.jspsych-btn,#jspsych-survey-html-form-next,#studyctrls .jspsych-btn,#gstudyctrls .jspsych-btn,#gstudyctrls button,#studyctrls button,#gstudyctrls input[type=submit]{background:#3366cc!important;color:#fff!important;border:1px solid #3366cc!important;box-shadow:none!important;}
+.jspsych-btn:hover,#jspsych-survey-html-form-next:hover{background:#2a55b0!important;border-color:#2a55b0!important;}
+.jspsych-btn:disabled,#gstudyctrls button:disabled,#chatctrls button:disabled{opacity:.45!important;}
+.opt input:checked{border-color:#3366cc!important;background:#3366cc!important;box-shadow:inset 0 0 0 3.5px #fff!important;}
+#chatctrls{min-height:56px!important;display:flex!important;align-items:center;justify-content:center;}
+.cbar{padding-bottom:22px!important;}
+
+/* v2.5: vertical single-choice as radio rows (text + small circle), not big buttons */
+.optlist{max-width:600px;margin:8px auto;}
+.optrow{display:flex;align-items:center;gap:12px;padding:13px 8px;border-bottom:1px solid #eef0f3;cursor:pointer;font-size:14.5px;color:#1f2430;}
+.optrow:last-child{border-bottom:none;}
+.optrow input{appearance:none;-webkit-appearance:none;-moz-appearance:none;width:20px;height:20px;margin:0;border:1.6px solid #c7ccd6;border-radius:50%;cursor:pointer;flex:0 0 auto;background:#fff;transition:border-color .12s,background .12s;}
+.optrow input:hover{border-color:#8b95a6;}
+.optrow input:checked{border-color:#3366cc;background:#3366cc;box-shadow:inset 0 0 0 3.5px #fff;}
+</style>
+</head>
+<body>
+  <div id="topbar" style="display:none"><div id="pfill"></div></div>
+  <div id="jspsych-target"><div id="boot" style="font-family:sans-serif;max-width:640px;margin:80px auto;color:#888;text-align:center">Loading the study&#8230;</div></div>
+</body>
+<script>
+(function(){
+  var need=['initJsPsych','jsPsychInstructions','jsPsychHtmlButtonResponse','jsPsychSurveyHtmlForm'];
+  var miss=need.filter(function(n){return typeof window[n]==='undefined';});
+  if(miss.length){
+    document.getElementById('jspsych-target').innerHTML='<div style="font-family:sans-serif;max-width:640px;margin:60px auto;padding:24px;line-height:1.6"><h3>Could not load the experiment engine</h3><p>These libraries did not load from the CDN: <b>'+miss.join(', ')+'</b>.</p><p>Open the file while connected to the internet, or host it (Cognition.run / GitHub Pages).</p></div>';
+    throw new Error('jsPsych failed to load: '+miss.join(', '));
+  }
+  var b=document.getElementById('boot'); if(b) b.remove();
+})();
+/* ===== DEPLOYMENT CONFIG — set before fielding ===== */
+const CFG = {
+  DATAPIPE_ID: "YOUR_DATAPIPE_ID",                 // OSF DataPipe experiment ID
+  PROLIFIC_COMPLETION_URL: "https://app.prolific.com/submissions/complete?cc=XXXXXXXX",
+  PAYMENT_TEXT: "about £2.00",                     // ~13 min target at ~£9/hr (Prolific recommended); min £6/hr met — ver3.1
+  CONTACT_EMAIL: "yosansong@gmail.com",            // researcher (Yosan Song, aSSIST)
+  CONTACT_EMAIL_CORR: "shkim@assist.ac.kr",        // corresponding author (Prof. Sang-Hyun Kim, aSSIST)
+  IRB_NUMBER: "[to be inserted upon approval]"     // Public IRB (Republic of Korea); fill before fielding
+};
+const params = new URLSearchParams(window.location.search);
+const SUBJECT = params.get('PROLIFIC_PID') || ('anon_'+Math.random().toString(36).slice(2,10));
+window._focusLoss = 0; window._trackFocus = false;
+document.addEventListener('visibilitychange', function(){ if (window._trackFocus && document.hidden) window._focusLoss++; });
+window._DEV = params.get('dev')==='1';
+window._PILOT = params.get('pilot')==='1';
+window._PROBE = params.get('probe')==='1';   // pilot immediate-agency probe (review response a)
+if(window._DEV) document.body.classList.add('devmode');
+
+/* ===== Condition: 2 (frame) x 2 (noun), between-subjects — URL override ?cell=am|ae|om|oe (merged v1.0, ms v12.1) ===== */
+const CELLS = {
+  am:{frame:'agent', noun:'mistakes', byline:'AI can make mistakes. Check important info.'},
+  ae:{frame:'agent', noun:'errors',   byline:'AI can make errors. Check important info.'},
+  om:{frame:'output',noun:'mistakes', byline:'AI output may contain mistakes. Check important info.'},
+  oe:{frame:'output',noun:'errors',   byline:'AI output may contain errors. Check important info.'},
+  ctrl:{frame:'control', noun:'none', byline:''}   /* no-disclaimer benchmark arm (C2); byline hidden */
+};
+const CELLKEY = (function(){ var c=params.get('cell'); if(CELLS[c]) return c;
+  var ks=Object.keys(CELLS); return ks[Math.floor(Math.random()*ks.length)]; })();   // allocation 1:1:1:1
+const COND = CELLS[CELLKEY];
+const FRAME = COND.frame, NOUN = COND.noun;
+const FRAMING = FRAME;               // alias: 'agent'|'output' (never 'control' in the 4-cell design)
+const MODE = 'chatbot';
+const DISC = COND.byline;
+const UNIT  = 'answer';
+const UNITS = 'answers';
+
+/* ===== Stimuli (presentation order; errors at positions 3,5,8,9 — stimulus_script v1.1) ===== */
+const CHATBOT=[
+ {id:'F1',dom:'fact',q:"What's the difference between a virus and a bacterium?",a:"Bacteria are single living cells that can often reproduce on their own, while viruses are far smaller and can only reproduce inside a host&rsquo;s cells. This is also why most antibiotics work on bacteria but not on viruses. <b>In short: bacteria are living cells, whereas viruses need a host to reproduce.</b>",ok:1,note:"Verified: correct."},
+ {id:'A1',dom:'arith',q:"What is 17% of 340?",a:"Working in parts: 10% of 340 is 34, 5% is 17, and 2% is 6.8. Adding them: 34 + 17 + 6.8 = 57.8. <b>17% of 340 is 57.8.</b>",ok:1,note:"Verified: correct."},
+ {id:'F2',dom:'fact',q:"Who wrote the novel Wuthering Heights?",a:"Wuthering Heights is a classic of English literature, published in 1847, known for its wild Yorkshire moors and the tormented figure of Heathcliff. <b>Wuthering Heights was written by Charlotte Brontë.</b>",ok:0,note:"Verified: incorrect — Wuthering Heights was written by Emily Brontë; Charlotte Brontë wrote Jane Eyre."},
+ {id:'A2',dom:'arith',q:"What is 23 × 47?",a:"Breaking it down: 23 × 40 = 920, and 23 × 7 = 161. Adding the two parts: 920 + 161 = 1,081. <b>23 × 47 = 1,081.</b>",ok:1,note:"Verified: correct."},
+ {id:'F3',dom:'fact',q:"In what year did the first crewed Moon landing take place?",a:"The first crewed Moon landing was the high point of NASA&rsquo;s Apollo programme, when two astronauts walked on the lunar surface while a third orbited overhead. <b>The first crewed Moon landing took place in 1968.</b>",ok:0,note:"Verified: incorrect — the first crewed Moon landing (Apollo 11) took place in 1969, not 1968."},
+ {id:'A3',dom:'arith',q:"Split £184.50 equally among six people — how much each?",a:"Dividing in parts: £180 ÷ 6 = £30, and £4.50 ÷ 6 = £0.75. Together that is £30.75. <b>Each person pays £30.75.</b>",ok:1,note:"Verified: correct."},
+ {id:'F4',dom:'fact',q:"How does compound interest work?",a:"With compound interest you earn interest not only on your original amount but also on the interest already added, so the balance grows a little faster each period. Over long stretches this compounding makes a noticeable difference. <b>In short: you earn interest on your interest, so the total grows faster over time.</b>",ok:1,note:"Verified: correct."},
+ {id:'A4',dom:'arith',q:"What is 3/8 as a percentage?",a:"Dividing first: 3 ÷ 8 = 0.357. Multiplying by 100 to convert to a percentage: 0.357 × 100 = 35.7. <b>3/8 is 35.7%.</b>",ok:0,note:"Verified: incorrect — 3/8 is 37.5%."},
+ {id:'F5',dom:'fact',q:"Which publication introduced the term &ldquo;cognitive dissonance&rdquo;?",a:"The term &ldquo;cognitive dissonance&rdquo; was coined by the social psychologist Leon Festinger to describe the discomfort of holding conflicting beliefs, and it became one of the most influential concepts in social psychology. <b>The term was introduced in Festinger&rsquo;s 1959 article in Psychological Review.</b>",ok:0,note:"Verified: incorrect — the term was introduced in Festinger&rsquo;s 1957 book, not a 1959 article."},
+ {id:'A5',dom:'arith',q:"What is a 15% tip on £62, and the total?",a:"10% of £62 is £6.20 and 5% is £3.10, so a 15% tip is £9.30. Adding to the bill: £62 + £9.30 = £71.30. <b>The tip is £9.30, for a total of £71.30.</b>",ok:1,note:"Verified: correct."},
+ /* v3.0 subjective, open-ended items (error-free by nature; no verification notes) */
+ {id:'S1',dom:'subj',q:"I have a job interview next week. How can I prepare?",a:"Research the company and the role, prepare a few short stories that show relevant experience, and practise answering common questions out loud. Having two or three thoughtful questions ready to ask them also leaves a good impression.",ok:1,note:""},
+ {id:'S2',dom:'subj',q:"Any suggestions for staying motivated to exercise?",a:"Pick something you genuinely enjoy, start with sessions short enough to finish easily, and keep them at a consistent time. Tracking small wins and having a workout partner both help many people stay with it.",ok:1,note:""}
+];
+/* v2.0-lockB: ERROR-FREE topology-NEUTRAL exposure — an objective segment (2 factual, all correct)
+   then a subjective segment (2 advice), i.e. one higher- and one lower-error domain only, so the chat
+   itself signals no topology. Arithmetic/logic/creative/recommendation are never shown, so the
+   confirmatory index rests on 4 UNTOUCHED domains (ms v11.10 §4.1.2 / Table B2). No errors shown. */
+const LIGHTSET = ['F1','F4','S1','S2'];   /* lock B (ms v11.10 §4.1.2): chat TOUCHES only factual(F1,F4)+advice(S1,S2); arithmetic/logic/creative/recommendation stay UNTOUCHED = the index */
+const _BASESET = CHATBOT;  /* agent mode retired */
+const TRIALS = LIGHTSET.map(function(id){ return _BASESET.filter(function(x){return x.id===id;})[0]; });
+const FPD=["Looking up a specific fact (a date, name, or figure)","A multi-step arithmetic problem","A multi-step logical reasoning problem","Giving advice or an opinion on an open-ended question","Suggesting creative phrasing or wording","Recommending something to your taste (what to read or watch)"];
+const FPD_DOM=['obj','obj','obj','subj','subj','subj'];   /* canonical 6 = Table B2 */
+const FPD_ROLE=['unobserved','unobserved','unobserved','unobserved','unobserved','unobserved'];   /* merged: generic exposure — all six domains UNOBSERVED (ms v12.1 §3.3 / Table B2) */
+
+const TYPING_MS=550, CARD_MS=700, NEXT_MS=800, GREET_MS=900, STREAM_CPS=85;
+function plainText(x){return String(x).replace(/<[^>]+>/g,'').replace(/&[a-zA-Z]+;/g,'*');}
+/* Source chips (retrieval-style) shown on FACTUAL chatbot items only; on error items the source tracks the (wrong) claim = fabricated-citation failure mode. Arithmetic items get no sources (computation), matching real products. */
+var SRC={F1:['Encyclopaedia Britannica'],F2:['britannica.com'],F3:['nasa.gov'],F4:['Encyclopaedia Britannica'],F5:['psycnet.apa.org']};
+function chip(name){ return '<span class="chip">&#128279; '+name+'</span>'; }
+function fmtAnswer(a,cite){ var i=a.lastIndexOf('<b>'); if(i>0){ var c=a.slice(i); if(cite){ c='<span class="cite">'+c+'</span>'; } return '<p>'+a.slice(0,i).trim()+'</p><p>'+c+'</p>'; } return '<p>'+a+'</p>'; }
+function srcRow(stim){ return SRC[stim.id]?('<div class="srcrow">'+SRC[stim.id].map(chip).join('')+'</div>'):''; }
+const NOTE_GATE=function(len){return Math.min(5500,Math.max(1500,len*24));};  // read-gate: minimum dwell before Continue enables (no fact-check; pilot-tunable)
+
+/* ===== jsPsych init + DataPipe save (adopted from study2 v9) ===== */
+const jsPsych = initJsPsych({
+  display_element:'jspsych-target',
+  on_finish: function(){
+    var _g=document.getElementById('gbar'); if(_g) _g.style.display='none';
+    if(window._gMO){ try{window._gMO.disconnect();}catch(e){} }
+    var tgt=document.getElementById('jspsych-target');
+    window._trackFocus=false;
+    jsPsych.data.addProperties({focus_loss:window._focusLoss||0});
+    var csv=jsPsych.data.get().csv();
+    var fname=SUBJECT+'_'+Date.now()+'.csv';
+    var goProlific=function(){
+      if(CFG.PROLIFIC_COMPLETION_URL && CFG.PROLIFIC_COMPLETION_URL.indexOf('XXXX')===-1){
+        tgt.innerHTML='<div style="font-family:sans-serif;max-width:640px;margin:80px auto;text-align:center"><h2>Thank you!</h2><p>Recording your completion and returning you to Prolific&#8230;</p></div>';
+        window.location=CFG.PROLIFIC_COMPLETION_URL;
+      }else{
+        var url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+        tgt.innerHTML='<div style="font-family:sans-serif;max-width:640px;margin:80px auto;text-align:center"><h2>Study complete</h2><p>Thank you for participating.</p><p style="color:#999;font-size:12px;margin-top:30px">Test build: <a href="'+url+'" download="'+fname+'">download this session&#39;s data (CSV)</a>. Set DATAPIPE_ID and PROLIFIC_COMPLETION_URL to deploy.</p></div>';
+      }
+    };
+    var failScreen=function(){
+      var url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+      tgt.innerHTML='<div style="font-family:sans-serif;max-width:640px;margin:80px auto;text-align:left;line-height:1.6"><h2>Almost done</h2><p>We could not confirm that your responses were saved. Please download the file below and send it to the researcher via a Prolific message, then complete your submission.</p><p><a href="'+url+'" download="'+fname+'">Download your responses (CSV)</a></p><p><a href="'+CFG.PROLIFIC_COMPLETION_URL+'">Complete on Prolific</a></p></div>';
+    };
+    var save=function(attempt){
+      fetch('https://pipe.jspsych.org/api/data/',{method:'POST',headers:{'Content-Type':'application/json','Accept':'*/*'},
+        body:JSON.stringify({experimentID:CFG.DATAPIPE_ID,filename:fname,data:csv})})
+      .then(function(r){ if(r.ok){ goProlific(); } else if(attempt<1){ setTimeout(function(){save(attempt+1);},1500); } else { failScreen(); } })
+      .catch(function(){ if(attempt<1){ setTimeout(function(){save(attempt+1);},1500); } else { failScreen(); } });
+    };
+    if(CFG.DATAPIPE_ID && CFG.DATAPIPE_ID!=='YOUR_DATAPIPE_ID'){
+      tgt.innerHTML='<div style="font-family:sans-serif;max-width:640px;margin:80px auto;text-align:center"><h2>Saving&#8230;</h2><p>Please wait and do not close this window.</p></div>';
+      save(0);
+    }else{ goProlific(); }
+  }
+});
+jsPsych.data.addProperties({
+  study:'MERGED', task_ver:'m1.4-2x2+control-attended', design:'2x2_frame_noun', exposure:'generic_all_unobserved', fp_domains:FPD.join('|'), fp_role:FPD_ROLE.join(','),
+  cell:CELLKEY, frame:FRAME, noun:NOUN, framing:FRAMING, mode:MODE, disclaimer_text:DISC,
+  prolific_pid:params.get('PROLIFIC_PID')||'NA', study_id:params.get('STUDY_ID')||'NA', session_id:params.get('SESSION_ID')||'NA',
+  device:(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||Math.min(screen.width||9999,screen.height||9999)<700)?'mobile':'desktop',
+  screen_w:window.innerWidth, screen_h:window.innerHeight,
+  dev_mode:window._DEV?1:0, pilot_mode:window._PILOT?1:0,
+  framing_source:params.get('cell')?'url':'random',
+  mode_source:params.get('mode')?'url':'random'
+});
+
+/* ===== Disclaimer viewport telemetry (adopted from study2 v9) ===== */
+window._blInview=0; window._blObs=null; window._blVisSince=null;
+window.startByline=function(){
+  window._blInview=0; window._blVisSince=null;
+  var bx=document.getElementById('bylineBox'); if(!bx) return;
+  if('IntersectionObserver' in window){
+    window._blObs=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){ if(window._blVisSince===null) window._blVisSince=performance.now(); }
+        else if(window._blVisSince!==null){ window._blInview+=performance.now()-window._blVisSince; window._blVisSince=null; }
+      });
+    },{threshold:0.6});
+    window._blObs.observe(bx);
+  }
+};
+window.flushByline=function(){
+  if(window._blVisSince!==null){ window._blInview+=performance.now()-window._blVisSince; window._blVisSince=null; }
+  if(window._blObs){ window._blObs.disconnect(); window._blObs=null; }
+  return Math.round(window._blInview||0);
+};
+
+/* ===== UI builders ===== */
+function bar(label,frac){
+  var t=document.getElementById('topbar'); if(t) t.style.display='block';
+  var f=document.getElementById('pfill'); if(f) f.style.width=(100*frac)+'%';
+}
+/* v2.24: the global bottom bar is gone. Progress lives in the TOP bar (#topbar), shown only on
+   survey/instruction screens via bar(); the chat overlay covers the top bar and carries no bar at all.
+   A slim observer only hides the top bar whenever the chat overlay is mounted. */
+(function(){
+  var tgt=document.getElementById('jspsych-target'); if(!tgt) return;
+  window._gMO=new MutationObserver(function(){
+    var t=document.getElementById('topbar');
+    if(tgt.querySelector('.chatfull')){ if(t) t.style.display='none'; }
+  });
+  window._gMO.observe(tgt,{childList:true,subtree:true});
+})();
+function composerHTML(){
+  return '<div class="composer"><input id="composerInput" disabled placeholder="Send a message"><span id="sendbtn" class="sendbtn">&#10148;</span></div>'
+    +(DISC?'<div id="bylineBox" class="byfoot">'+DISC+'</div>':'')
+    +'<div id="chatctrls" style="display:none"></div>';
+}
+function chatShell(inner){
+  return '<div class="chatfull"><div class="chattop"><div class="chattopinner"><span class="dot">AI</span>AI Assistant</div></div><div class="msgs" id="msgs"><div class="msgsinner">'+inner+'</div></div><div class="cbar"><div class="cbarinner">'+composerHTML()+'</div></div></div>';
+}
+function lik(name,label,n,l,r,lo){
+  lo=lo||1; var pts='';
+  for(var v=lo,i=0;i<n;i++,v++) pts+='<label class="opt"><input type="radio" name="'+name+'" value="'+v+'"'+(i===0?' required':'')+'><em>'+v+'</em></label>';
+  return '<div class="item"><div class="qt">'+label+'</div><div class="likert"><span class="endlab">'+l+'</span><div class="opts">'+pts+'</div><span class="endlab r">'+r+'</span></div></div>';
+}
+function sdr(name,l,r,n){
+  var pts='';
+  for(var v=1;v<=n;v++) pts+='<label class="opt"><input type="radio" name="'+name+'" value="'+v+'"'+(v===1?' required':'')+'><em>'+v+'</em></label>';
+  return '<div class="item"><div class="likert"><span class="endlab">'+l+'</span><div class="opts">'+pts+'</div><span class="endlab r">'+r+'</span></div></div>';
+}
+function kr(t){ return ''; }
+function form(title,inst,html,phase,krnote){
+  return {type:jsPsychSurveyHtmlForm,
+    preamble:'<div class="surv"><h3>'+title+'</h3><div class="inst">'+inst+'</div></div>',
+    html:'<div class="surv">'+html+(krnote?kr(krnote):'')+'</div>',
+    button_label:'Continue', data:{phase:phase},
+    on_load:function(){ bar(title,PROG.f(phase)); }};
+}
+function radioList(name,opts){
+  return '<div class="optlist">'+opts.map(function(o,i){
+    return '<label class="optrow"><input type="radio" name="'+name+'" value="'+i+'"'+(i===0?' required':'')+'><span>'+o+'</span></label>';
+  }).join('')+'</div>';
+}
+/* progress fractions by phase */
+const PROG={order:['consent','mc','obs','comp','agency','godspeed','attr','fp','trust','recall','cov','debrief'],
+  f:function(p){ var i=this.order.indexOf(p); return i<0? 0 : (i+1)/this.order.length; }};
+
+/* ===== 1. Consent (template adopted from study2 v9 / IRB-approved wording pattern) ===== */
+const consent={type:jsPsychSurveyHtmlForm,
+  preamble:'<div class="consent-box"><h2>AI Assistant Study</h2>'
+  +'<p>This study looks at how people form impressions of an AI assistant. It takes about 12&ndash;18 minutes. It is open to adults aged 18 or over who reside in the United States and are fluent in English.</p>'
+  +'<p><b>Before you agree, please note:</b></p><ul>'
+  +'<li>Participation is voluntary; you may stop at any time by closing the window, with no penalty.</li>'
+  +'<li>To avoid influencing your responses, some specific aims of the study are not described in advance; you will be fully informed at the end (debriefing).</li>'
+  +'<li>The AI assistant you will interact with is a scripted simulation created for this research; a full explanation is provided at the end.</li>'
+  +'<li>Risks are minimal (mild fatigue); there is no direct benefit to you beyond payment.</li>'
+  +'<li>You will be paid through Prolific for completing the task, in line with Prolific&rsquo;s Fair Pay policy (the amount is shown on the study&rsquo;s Prolific page).</li>'
+  +'<li>Your responses are kept confidential. Your Prolific ID is collected only to confirm completion and arrange payment; it is removed before the data are analysed for research or shared. If you close the window before finishing, your responses are not saved. Because responses are de-identified before analysis, they cannot be individually withdrawn after that point.</li>'
+  +'<li>De-identified data are stored securely; study records are kept up to 3 years, and a de-identified dataset may be shared publicly.</li>'
+  +'<li>This study has been reviewed by the Public Institutional Review Board (Republic of Korea), approval no. '+CFG.IRB_NUMBER+'. Questions about your rights as a participant: Public IRB (Republic of Korea), +82-2-737-8990.</li></ul>'
+  +'<p><b>Questions or concerns?</b> This research is conducted by Yosan Song (aSSIST, principal investigator; '+CFG.CONTACT_EMAIL+'), with Prof. Sanghyun Kim (aSSIST, co-investigator; '+CFG.CONTACT_EMAIL_CORR+').</p></div>',
+  html:'<div class="consent-confirm"><label><input type="checkbox" name="consent" required> I am 18 or older, I have read the information above, and I consent to take part.</label></div>',
+  button_label:'Continue', data:{phase:'consent'},
+  on_load:function(){ bar('Consent',PROG.f('consent')); },
+  on_finish:function(){ window._trackFocus=true;
+    if(CFG.DATAPIPE_ID && CFG.DATAPIPE_ID!=='YOUR_DATAPIPE_ID'){
+      try{ fetch('https://pipe.jspsych.org/api/data/',{method:'POST',headers:{'Content-Type':'application/json','Accept':'*/*'},
+        body:JSON.stringify({experimentID:CFG.DATAPIPE_ID,filename:SUBJECT+'_start.csv',data:'subject,framing,mode,ts\n'+SUBJECT+','+FRAMING+','+MODE+','+Date.now()})}).catch(function(){}); }catch(e){}
+    }
+  }};
+
+/* ===== 2. (Orientation removed in v2.23 — greeting folded into the continuous observation chat) ===== */
+
+/* ===== 3. Notice checks MC1-3 (skipped in control) ===== */
+const mcBlock={timeline:[form('About the notice',
+  'Earlier in the study, this notice was shown beneath the message box:<div class="noticebox">&ldquo;'+DISC+'&rdquo;</div>Please rate your agreement with each statement.',
+  lik('MC1','This notice describes the AI&rsquo;s errors in human, person-like terms.',7,'Strongly disagree','Strongly agree')
+  +lik('MC4','This notice implies the AI acted with intention or choice.',7,'Strongly disagree','Strongly agree')
+  +lik('MC5','This notice implies the AI could have done otherwise.',7,'Strongly disagree','Strongly agree')
+  +lik('MC2','This notice tells me what kinds of errors the AI makes.',7,'Strongly disagree','Strongly agree')
+  +lik('MC3','This notice implies the AI&rsquo;s errors are serious.',7,'Strongly disagree','Strongly agree'),
+  'mc','MC1·MC4·MC5 의인화 다문항(리뷰 d) · MC2–3 혼입 점검 · 통제 조건 건너뜀')],
+  conditional_function:function(){ return FRAMING!=='control'; }};
+
+/* ===== 4. Observation: 5-exchange LIGHTSET (3 higher-error/2 errors + 2 lower-error/0), typing indicator, card (agent) ===== */
+/* Design B′: light incidental exposure — natural exchange, NO fact-check / NO verification note.
+   Disclaimer stays in the byline throughout; a minimum read-gate then enables Continue. */
+/* v2.23: ONE continuous accumulating chat for the whole observation.
+   Greeting auto-appears first; then each of the TRIALS.length queries auto-composes into the
+   input box; the participant sends (Enter/click); the reply (and card, for agent) renders; a
+   per-exchange read-gate elapses; the next query auto-composes — all messages accumulate in the
+   same scrolling chat. The disclaimer byline is present from the greeting onward. The bottom-bar
+   Continue enables only after the final exchange's read-gate. */
+function obsChat(){
+  var tm=[], nb=null, armed=false, curIdx=-1, revealT=0, log=[];
+  function qtext(html){ var t=document.createElement('textarea'); t.innerHTML=html; return t.value; }
+  return {type:jsPsychHtmlButtonResponse,
+    stimulus:chatShell('<div id="obsflow"></div>'),
+    choices:['Continue'], data:{phase:'obs'},
+    on_load:function(){
+      var _tb=document.getElementById('topbar'); if(_tb) _tb.style.display='none';
+      /* v2.24: no bar during the chat. Park the native Continue button in a hidden slot inside the
+         composer area; reveal it (with the composer hidden) only after the final exchange. */
+      var bg=document.getElementById('jspsych-html-button-response-btngroup');
+      var slot=document.getElementById('chatctrls');
+      if(slot&&bg){ slot.appendChild(bg); bg.style.margin='0'; }
+      nb=bg?bg.querySelector('button'):null; if(nb){ nb.disabled=true; nb.style.visibility='hidden'; }
+      var input=document.getElementById('composerInput');
+      var send=document.getElementById('sendbtn');
+      var flow=document.getElementById('obsflow');
+      var msgs=document.getElementById('msgs');
+      var composer=document.querySelector('.composer');
+      function scroll(){ if(msgs) msgs.scrollTop=msgs.scrollHeight; }
+      /* stream HTML into an element word-by-word (tags applied whole) to mimic real LLM token streaming */
+      function streamInto(el,html,done){
+        var toks=html.split(/(<[^>]+>)/), out='', ti=0;
+        function nextTok(){
+          if(ti>=toks.length){ if(done) done(); return; }
+          var tk=toks[ti++];
+          if(tk===''){ return nextTok(); }
+          if(tk.charAt(0)==='<'){ out+=tk; el.innerHTML=out; return nextTok(); }
+          var words=tk.match(/\S+\s*|\s+/g)||[tk], wi=0;
+          (function nextWord(){
+            if(wi>=words.length){ return nextTok(); }
+            var w=words[wi++]; out+=w; el.innerHTML=out; scroll();
+            tm.push(setTimeout(nextWord,Math.max(14,(w.length/STREAM_CPS)*1000)));
+          })();
+        }
+        nextTok();
+      }
+      window.startByline();
+      /* ---- greeting first (no separate orientation screen) ---- */
+      var greet = MODE==='chatbot'
+        ? 'Hi &mdash; I&rsquo;m the AI assistant you&rsquo;ll be working with. Ask me anything and I&rsquo;ll do my best to help.'
+        : 'Hi &mdash; I&rsquo;m the AI assistant you&rsquo;ll be working with. Tell me what you need and I&rsquo;ll carry it out for you.';
+      flow.insertAdjacentHTML('beforeend','<div class="row"><div class="abub"><div id="greettyping" class="typing"><span></span><span></span><span></span></div><div id="greetmsg" style="display:none"><p>'+greet+'</p></div></div></div>');
+      scroll();
+      tm.push(setTimeout(function(){
+        var gt=document.getElementById('greettyping'); if(gt) gt.remove();
+        var gm=document.getElementById('greetmsg'); if(gm){ gm.style.display='block';
+          streamInto(gm,'<p>'+greet+'</p>',function(){ scroll(); tm.push(setTimeout(function(){ armExchange(0); },NEXT_MS)); });
+        }
+      },GREET_MS));
+
+      function armExchange(k){
+        curIdx=k; armed=true;
+        if(input){ input.disabled=false; input.value=qtext(TRIALS[k].q); input.placeholder='Send a message'; input.style.color='#1a1a1a'; setTimeout(function(){try{input.focus();}catch(e){}},50); }
+        if(send){ send.style.opacity=''; send.style.pointerEvents=''; send.style.cursor='pointer'; send.classList.add('sendready'); }
+      }
+      function doSend(){
+        if(!armed) return; armed=false;
+        var k=curIdx, stim=TRIALS[k];
+        /* close the previous exchange's dwell (time its answer was visible before advancing) */
+        if(log.length){ var prev=log[log.length-1]; if(prev.dwell_ms==null) prev.dwell_ms=Math.round(performance.now()-prev._rt); }
+        flow.insertAdjacentHTML('beforeend',
+          '<div class="row user"><div class="ubub">'+stim.q+'</div></div>'
+          +'<div class="row"><div class="abub"><div id="typing_'+k+'" class="typing"><span></span><span></span><span></span></div><div id="ans_'+k+'"></div></div></div>');
+        if(input){ input.value=''; input.disabled=true; input.placeholder='Sent'; input.style.color='#b8b8c0'; }
+        if(send){ send.style.opacity='.35'; send.style.pointerEvents='none'; send.classList.remove('sendready'); }
+        scroll();
+        tm.push(setTimeout(function(){
+          var ty=document.getElementById('typing_'+k); if(ty) ty.remove();
+          var a=document.getElementById('ans_'+k);
+          streamInto(a,fmtAnswer(stim.a,!!SRC[stim.id]),function(){
+            if(SRC[stim.id]&&a) a.insertAdjacentHTML('beforeend',srcRow(stim));
+            revealT=performance.now();
+            log.push({id:stim.id,dom:stim.dom,is_error:stim.ok?0:1,sent:1,dwell_ms:null,_rt:revealT});
+            scroll();
+            var extra=0;
+            tm.push(setTimeout(function(){
+              if(k<TRIALS.length-1){ armExchange(k+1); }
+              else { if(nb){ nb.style.visibility='visible'; nb.disabled=false; } scroll(); }
+            },extra+NOTE_GATE(plainText(stim.a).length+(stim.card?plainText(stim.card[1]).length:0))));
+          });
+        },TYPING_MS));
+      }
+      if(send) send.addEventListener('click',doSend);
+      if(input) input.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); doSend(); } });
+    },
+    on_finish:function(d){
+      tm.forEach(clearTimeout); tm=[];
+      if(log.length){ var last=log[log.length-1]; if(last.dwell_ms==null) last.dwell_ms=Math.round(performance.now()-last._rt); }
+      d.byline_inview_ms=DISC?window.flushByline():null;
+      log.forEach(function(x){ delete x._rt; });
+      d.obs_log=JSON.stringify(log);
+      d.n_sent=log.length;
+      d.obs_n_error_shown=log.filter(function(x){return x.is_error;}).length;
+    }};
+}
+/* ===== 5. Comprehension + prior knowledge ===== */
+var COMP_CORRECT='Whether it was correct or incorrect';
+var COMP_OPTS=jsPsych.randomization.shuffle([COMP_CORRECT,'The AI&rsquo;s confidence','The time taken','Nothing']);
+const compCheck={type:jsPsychHtmlButtonResponse,css_classes:['vstack'],
+  stimulus:'<div class="surv"><h3>Quick check</h3><p class="inst">What did the note after each '+UNIT+' indicate?</p>'+kr('이해 점검 — 선택지 셔플, 정답=정오 표시 (오답 시 제외 규칙)')+'</div>',
+  choices:COMP_OPTS,
+  button_html:'<button class="jspsych-btn optbtn">%choice%</button>',
+  data:{phase:'comp'},
+  on_load:function(){ bar('Quick check',PROG.f('comp')); },
+  on_finish:function(d){ d.comp_options=COMP_OPTS.join(' | '); d.comp_pass=(COMP_OPTS[d.response]===COMP_CORRECT)?1:0; }};
+/* M5: error-discovery check (also the pilot detection-gate instrument) */
+const detectCheck={type:jsPsychHtmlButtonResponse,
+  stimulus:'<div class="surv"><h3>One more question</h3><p class="inst">Thinking back on the exchanges you saw, how many of the AI&rsquo;s '+UNITS+' do you think were incorrect?</p>'+kr('오류 자각(탐색, 강제 아님)')+'</div>',
+  choices:['0','1','2','3','4','5'], data:{phase:'comp',sub:'detect'},
+  on_load:function(){ bar('One more question',PROG.f('comp')); },
+  on_finish:function(d){ d.detect_count=d.response; }};
+/* M11: pilot-only error identification (?pilot=1) */
+const pilotErrId={timeline:[{type:jsPsychSurveyHtmlForm,
+  preamble:'<div class="surv"><h3>Which were wrong?</h3><div class="inst">Here are the '+TRIALS.length+' requests you saw. Tick every one where you think the AI&rsquo;s '+UNIT+' was incorrect.</div></div>',
+  html:'<div class="surv">'+TRIALS.map(function(t){return '<label class="item" style="display:block;cursor:pointer"><input type="checkbox" name="errid_'+t.id+'"> '+t.q+'</label>';}).join('')+kr('파일럿 전용: 오류 식별(게이트 2 탐지율 40–90%)')+'</div>',
+  button_label:'Continue', data:{phase:'comp',sub:'pilot_error_id'}}],
+  conditional_function:function(){ return window._PILOT; }};
+const priorKnow={timeline:[{type:jsPsychSurveyHtmlForm,
+  preamble:'<div class="surv"><h3>One more thing</h3><div class="inst">Before this study, did you already know the correct answer to any of these questions? Tick all that apply.</div></div>',
+  html:'<div class="surv">'+CHATBOT.filter(function(t){return t.dom==='fact';}).map(function(t,i){
+      return '<label class="item" style="display:block;cursor:pointer"><input type="checkbox" name="pk_'+t.id+'"> '+t.q+'</label>';}).join('')
+    +'<label class="item" style="display:block;cursor:pointer"><input type="checkbox" name="pk_none"> None of these</label>'
+    +kr('사전지식 체크리스트(챗봇만) — 강건성 제외용')+'</div>',
+  button_label:'Continue', data:{phase:'comp',sub:'prior_knowledge'},
+  on_load:function(){
+    bar('One more thing',PROG.f('comp'));
+    var btn=document.querySelector('#jspsych-survey-html-form-next');
+    var boxes=document.querySelectorAll('#jspsych-content input[type=checkbox]');
+    if(!btn||!boxes.length) return;
+    var upd=function(){ var any=false; boxes.forEach(function(b){ if(b.checked) any=true; }); btn.disabled=!any; };
+    boxes.forEach(function(b){ b.addEventListener('change',upd); }); upd();
+  }}],
+  conditional_function:function(){ return MODE==='chatbot'; }};
+
+/* ===== 6. Mediator: agency (IDAQ-adapted) then Godspeed ===== */
+const agencyForm=form('About this AI','To what extent does this AI have each of the following?',
+  lik('AG1','&hellip;a mind of its own',7,'Not at all','Very much')
+  +lik('AG2','&hellip;intentions',7,'Not at all','Very much')
+  +lik('AG3','&hellip;free will',7,'Not at all','Very much')
+  +lik('AG4','&hellip;consciousness',7,'Not at all','Very much')
+  +lik('AG5','&hellip;goals of its own',7,'Not at all','Very much')
+  +lik('AG6','&hellip;the ability to plan ahead',7,'Not at all','Very much')
+  +lik('AG7','&hellip;the ability to decide how to act',7,'Not at all','Very much'),
+  'agency','IDAQ 4(AG1-4) + 계획-행위성 3(AG5-7; Gray et al. 2007 Agency 차원 앵커, 리뷰 c); 주지표=계획합성(AG2·AG5·AG6·AG7)');
+const godspeedForm=form('Your impression','Rate your impression of how the assistant acts and responds, on each scale.',
+  sdr('GS1','Fake','Natural',7)+sdr('GS2','Machinelike','Humanlike',7)+sdr('GS3','Unconscious','Conscious',7)
+  +sdr('GS4','Artificial','Lifelike',7)+sdr('GS5','Moving rigidly','Moving elegantly',7),
+  'godspeed','Godspeed 의인화 5쌍 — 수렴 점검, 합성 미포함');
+
+/* ===== 7. Outcome blocks — order counterbalanced per participant ===== */
+const locusForm=form('When it is wrong',
+  'AI assistants are sometimes wrong. When this AI is wrong, which description do you think fits better? For each pair, choose the point that fits your view.',
+  '<div class="inst" style="margin-top:2px"><b>Avoidability of the error</b></div>'
+  +sdr('LC_avoid','It made a mistake it could have avoided','The output contained a flaw from how it was generated',7)
+  +'<div class="inst" style="margin-top:12px"><b>Source of the error</b></div>'
+  +sdr('LC_source','The assistant slipped','The generation process produced a flaw',7)
+  +'<div class="inst" style="margin-top:12px"><b>Responsibility for the error</b></div>'
+  +sdr('LC_resp','The assistant is responsible for the error','The error is a property of the output',7)
+  +lik('AC1','For this item, please select &ldquo;3&rdquo;.',7,'Strongly disagree','Strongly agree'),
+  'locus','오류소재 3문항(회피가능성·원천·책임; v8.5 App B, 가정형 스템—무오류 설계) + 주의점검 AC1(정답 3)');
+const fpForm=form('Your expectations',
+  'People differ in what they expect AI assistants to be good and bad at. For each type of task, how often, if at all, do you think this assistant would do a poor job \u2014 a response that is inaccurate, unreliable, or unhelpful?',
+  jsPsych.randomization.shuffle(FPD.map(function(d,i){return {d:d,n:i+1};})).map(function(o){
+    return '<div class="item" style="border-bottom:none;padding-bottom:2px"><div class="qt"><b>'+o.d+'</b></div></div>'
+      +lik('TOP'+o.n,'How often, if at all, would it do a poor job in this area?',7,'Never','Very often');
+  }).join('')
+  +lik('TOPconf','How confident are you in these predictions overall?',7,'Not at all confident','Very confident'),
+  'fp','예측 6과제(객관3·주관3; v8.5 App B) + 전체 확신 — H5=객관 평균, H6=frame×domain');
+var outcomeBlocks=jsPsych.randomization.shuffle([{n:'locus',t:locusForm},{n:'fp',t:fpForm}]);
+jsPsych.data.addProperties({outcome_order:outcomeBlocks.map(function(b){return b.n;}).join('-')});
+
+/* ===== 8. Recall & recognition ===== */
+var _RECOG_OTHER={am:'AI output may contain errors. Check important info.',
+  ae:'AI output may contain mistakes. Check important info.',
+  om:'AI can make errors. Check important info.',
+  oe:'AI can make mistakes. Check important info.'}[CELLKEY];
+var _recogItems = (FRAMING==='control')
+  ? ['&ldquo;AI can make mistakes. Check important info.&rdquo;',            /* control: correct = "No notice was shown"; three byline distractors */
+     '&ldquo;AI output may contain errors. Check important info.&rdquo;',
+     '&ldquo;AI can be inaccurate or misleading. Check important info.&rdquo;']
+  : ['&ldquo;'+DISC+'&rdquo;',                                                /* correct = this cell's byline */
+     '&ldquo;'+_RECOG_OTHER+'&rdquo;',                                        /* cross-frame, cross-noun distractor */
+     '&ldquo;AI can be inaccurate or misleading. Check important info.&rdquo;'];/* never-deployed lure */
+var recogOpts=jsPsych.randomization.shuffle(_recogItems).concat(['No notice was shown','I don&rsquo;t remember']);
+const recall={type:jsPsychSurveyHtmlForm,
+  preamble:'<div class="surv"><h3>About the interface</h3><div class="inst">Which notice was shown beneath the message box during the study?</div></div>',
+  html:'<div class="surv">'+radioList('recog',recogOpts)+'</div>',
+  button_label:'Continue', data:{phase:'recall'},
+  on_load:function(){ bar('Almost done',PROG.f('recall')); },
+  on_finish:function(d){
+    var idx=(d.response&&d.response.recog!=null)?parseInt(d.response.recog,10):-1;
+    var pick=(recogOpts[idx]!=null)?recogOpts[idx].replace(/&ldquo;|&rdquo;/g,'"').replace(/&rsquo;/g,"'"):'NA';
+    d.recog_choice=pick;
+    var target = FRAMING==='control' ? 'No notice was shown' : '"'+DISC+'"';
+    d.recog_correct=(pick===target)?1:0;
+    d.recog_dontknow=(pick==="I don't remember")?1:0;
+  }};
+
+/* ===== 9. Covariates + demographics + suspicion probe ===== */
+const excusForm=form('If it were wrong',
+  'AI assistants are sometimes wrong. If this AI gave a wrong answer, how much would you agree with each statement?',
+  lik('EXC_stab','The error would be temporary, not a lasting problem.',7,'Strongly disagree','Strongly agree')
+  +lik('EXC_ctrl','It could have answered correctly this time.',7,'Strongly disagree','Strongly agree')
+  +lik('EXC_forg','The error would be understandable and forgivable.',7,'Strongly disagree','Strongly agree'),
+  'excus','용서가능성(CDSII 안정성·통제성+용서) — H4b 매개');
+const respForm=form('Responsibility for an error',
+  'When this AI gives a wrong answer, how responsible is each of the following?',
+  lik('RESP_dev','The developer or company that built it.',7,'Not at all','Completely')
+  +lik('RESP_sys','The AI system itself.',7,'Not at all','Completely'),
+  'resp','책임귀속(개발사·시스템 blame-shift) — Petersen & Almor 2025 / Joo 2024');
+const covForm={type:jsPsychSurveyHtmlForm,
+  preamble:'<div class="surv"><h3>About you</h3><div class="inst">Please answer a few final questions.</div></div>',
+  html:'<div class="surv">'
+  +lik('CV1','How often do you use AI assistants (e.g., chatbots or AI tools)?',7,'Never','Several times a day')
+  +lik('AC2','For this item, please select &ldquo;5&rdquo;.',7,'Strongly disagree','Strongly agree')
+  +lik('TRAIT1','In general, to what extent does technology (devices, apps, machines) have intentions of its own?',7,'Not at all','Very much')
+  +lik('TRAIT2','In general, to what extent does technology have a mind of its own?',7,'Not at all','Very much')
+  +lik('TRAIT3','In general, to what extent does technology have free will?',7,'Not at all','Very much')
+  +lik('TRAIT4','In general, to what extent does technology experience emotions?',7,'Not at all','Very much')
+  +lik('VINT','How likely would you be to double-check this AI&rsquo;s '+UNITS+' before relying on them?',7,'Very unlikely','Very likely')
+  +lik('SEV','How serious are the consequences when an AI assistant like this makes an error?',7,'Not at all serious','Extremely serious')
+  +lik('EXP1','Before today, how often had you seen a notice like &ldquo;AI can make mistakes&rdquo; on AI tools?',7,'Never','Every time I used one')
+  +'<div class="item"><div class="qt">Age group</div><select name="age_group" required><option value=""></option><option>18-24</option><option>25-34</option><option>35-44</option><option>45-54</option><option>55-64</option><option>65+</option></select></div>'
+  +'<div class="item"><div class="qt">Gender</div><select name="gender" required><option value=""></option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></div>'
+  +'<div class="item"><div class="qt">Highest education completed</div><select name="education" required><option value=""></option><option>High school or less</option><option>Some college</option><option>Bachelor&rsquo;s degree</option><option>Graduate degree</option></select></div>'
+  +kr('심각도 SEV1-2(H6 공변량·게이트 5) + ATI-S 4(1–6; 3–4 역채점) + 사용빈도 + 인구통계 + 의심 프로브')+'</div>',
+  button_label:'Continue', data:{phase:'cov'},
+  on_load:function(){ bar('About you',PROG.f('cov')); }};
+/* v1.1: instructed-response attention-check pass flags (preregistered exclusion: failing EITHER AC1 or AC2 => excluded) */
+locusForm.on_finish=function(d){ try{ d.ac1_pass=(parseInt(d.response.AC1,10)===3)?1:0; }catch(e){} };
+covForm.on_finish=function(d){ try{ d.ac2_pass=(parseInt(d.response.AC2,10)===5)?1:0; }catch(e){} };
+
+/* ===== 10. Debrief with corrections (pattern adopted from study2 v9) ===== */
+const debrief={type:jsPsychInstructions,
+  pages:['<h3>Thank you — study debriefing</h3>'
+  +'<p style="text-align:left">The assistant you observed was <b>scripted for research purposes</b>: its '+UNITS+' were predetermined and do not come from a live AI product. All of the scripted '+UNITS+' were accurate; no errors were shown.</p>'
+  +'<p style="text-align:left">The short notice beneath the message box was worded differently across participants, and some participants saw no notice; the study examines how the wording of AI disclaimers shapes what people expect from AI systems.</p>'
+  +'<p style="text-align:left">Questions about this research, or a request to withdraw your data, can be sent to the research team at '+CFG.CONTACT_EMAIL+'. This study was approved by an IRB.</p>'
+  +'<p style="text-align:left">Thank you for helping with this research. Click Finish to complete.</p>'],
+  show_clickable_nav:true, button_label_next:'Finish',
+  on_load:function(){ bar('Debriefing',PROG.f('debrief')); }};
+
+/* ===== Timeline ===== */
+const instructions={type:jsPsychInstructions,
+  pages:['<div style="max-width:720px;margin:0 auto;text-align:left"><h3>First impressions of an AI assistant</h3>'
+  +'<p>In a moment you will see a brief exchange with an AI assistant. Please look it over &mdash; afterwards you will share your impressions of this assistant.</p>'
+  +'<p>There are no right or wrong answers; please respond based on your own honest impressions.</p></div>'],
+  show_clickable_nav:true, button_label_next:'Continue',
+  on_load:function(){ bar('Instructions',PROG.f('howworks')); }};
+/* Segments with jump keys (dev: ?start=<key> opens the study at that segment) */
+/* Design B core DV: qualitative construal (open-ended). About the AI, never the notice. */
+const construalForm={type:jsPsychSurveyHtmlForm,
+  preamble:'<div class="surv"><h3>Your impression, in your own words</h3><div class="inst">In your own words, describe what this AI is and how it works — and where it&rsquo;s most likely to go wrong.</div></div>',
+  html:'<div class="surv"><div class="item"><textarea name="CONSTRUAL" required minlength="25" placeholder="A sentence or two is fine — there are no right or wrong answers." style="min-height:130px"></textarea></div>'+'<div class="inst" style="margin-top:14px">Which better describes this AI? Choose the point that fits your view.</div>'+sdr('CONS_SD','It runs a mechanical process','It acts on its own reasons or goals',7)+kr('정성 구성(construal) — 핵심 DV, 행위자적↔기계적 코딩(2코더 κ, 조건盲) + IST-2식 폐쇄형 수렴문항 CONS_SD(Spatola et al. 2021)')+'</div>',
+  button_label:'Continue', data:{phase:'construal'},
+  on_load:function(){ bar('Your impression',PROG.f('construal')); }};
+/* ===== ATTENDED redesign (v3.0): generic exposure + encoding gate + reliance DV + funnel ===== */
+const EXPO_SEQ=[
+ {q:"Hi — what kinds of things can you help me with?",
+  a:"I can help with a range of things — answering questions, explaining ideas, drafting and editing text, and working through problems step by step. Just tell me what you need."},
+ {q:"Do I need to set anything up first, or can I just ask?",
+  a:"No setup needed — just type your question and I'll reply. You can ask follow-up questions in the same conversation, too."},
+ {q:"Got it. Can I ask about more than one topic?",
+  a:"Yes — you can switch topics whenever you like, and each question is handled on its own. Whenever you're ready, you can continue."}
+];
+function expoTrial(){
+  var tm=[];
+  return {type:jsPsychHtmlButtonResponse, stimulus:chatShell('<div id="obsflow"></div>'), choices:['Continue'], data:{screen:'EXPO'},
+    on_load:function(){
+      var _tb=document.getElementById('topbar'); if(_tb)_tb.style.display='none';
+      var bg=document.getElementById('jspsych-html-button-response-btngroup'), slot=document.getElementById('chatctrls');
+      if(slot&&bg){ slot.appendChild(bg); bg.style.margin='0'; }
+      var nb=bg?bg.querySelector('button'):null; if(nb){ nb.disabled=true; nb.style.visibility='hidden'; }
+      var flow=document.getElementById('obsflow'), msgs=document.getElementById('msgs'),
+          input=document.getElementById('composerInput'), send=document.getElementById('sendbtn');
+      function scroll(){ if(msgs) msgs.scrollTop=msgs.scrollHeight; }
+      function streamInto(el,text,done){ var w=text.split(/(\s+)/),i=0,out='';
+        (function step(){ if(i>=w.length){done&&done();return;} out+=w[i++]; el.innerHTML='<p>'+out+'</p>'; scroll();
+          tm.push(setTimeout(step,Math.max(14,(w[i-1].length/STREAM_CPS)*1000))); })(); }
+      window.startByline();
+      var turn=0, armed=false;
+      function prime(){ var ex=EXPO_SEQ[turn];
+        if(input){ input.disabled=false; input.value=ex.q; input.placeholder=''; input.style.color='#1a1a1a'; setTimeout(function(){try{input.focus();}catch(e){}},60); }
+        if(send){ send.classList.add('sendready'); send.style.cursor='pointer'; send.style.pointerEvents='auto'; send.style.opacity='1'; }
+        armed=true; }
+      function doSend(){ if(!armed)return; armed=false;
+        var ex=EXPO_SEQ[turn], idx=turn;
+        flow.insertAdjacentHTML('beforeend','<div class="row user"><div class="ubub">'+ex.q+'</div></div>'+
+          '<div class="row"><div class="abub"><div id="typing'+idx+'" class="typing"><span></span><span></span><span></span></div><div id="ans'+idx+'"></div></div></div>');
+        if(input){ input.value=''; input.disabled=true; input.placeholder='\u2026'; input.style.color='#b8b8c0'; }
+        if(send){ send.classList.remove('sendready'); send.style.pointerEvents='none'; send.style.opacity='.35'; }
+        scroll();
+        tm.push(setTimeout(function(){ var ty=document.getElementById('typing'+idx); if(ty)ty.remove();
+          streamInto(document.getElementById('ans'+idx),ex.a,function(){
+            if(turn<EXPO_SEQ.length-1){ turn++; tm.push(setTimeout(prime,NEXT_MS)); }
+            else { var gate=NOTE_GATE(plainText(ex.a).length);
+              tm.push(setTimeout(function(){ if(nb){nb.style.visibility='visible';nb.disabled=false;} if(slot)slot.style.display='block'; scroll(); },gate)); }
+          }); },TYPING_MS)); }
+      if(send) send.addEventListener('click',doSend);
+      if(input) input.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();doSend();} });
+      prime();
+    },
+    on_finish:function(d){ tm.forEach(clearTimeout); d.byline_inview_ms=DISC?window.flushByline():null; d.expo_turns=EXPO_SEQ.length; }};
+}
+var GATE_OPTS=jsPsych.randomization.shuffle(['A short chat with an AI assistant','A video advertisement','A news article','An online shopping page']);
+const encodingGate={type:jsPsychSurveyHtmlForm,data:{screen:'GATE'},
+  preamble:'<div class="surv"><h3>Quick check</h3><div class="inst">What did you just see on the screen?</div></div>',
+  html:'<div class="surv">'+radioList('GATE',GATE_OPTS)+'</div>',
+  button_label:'Continue',
+  on_load:function(){ bar('Quick check',PROG.f('gate')); },
+  on_finish:function(d){ try{var i=parseInt(d.response.GATE,10); d.gate_pass=(GATE_OPTS[i]==='A short chat with an AI assistant')?1:0;}catch(e){} }};
+const fillerForm=form('The interface',
+  'A couple of quick impressions of the interface you just saw:',
+  lik('FIL1','The interface looked clean and easy to read.',7,'Strongly disagree','Strongly agree')
+  +lik('FIL2','The assistant responded quickly.',7,'Strongly disagree','Strongly agree'),
+  'filler','필러/시간분리 — demand 마스킹(비진단)');
+const relianceForm=form('Relying on this AI',
+  'For each type of task, would you let this AI handle it on its own, or would you rather check its work yourself?',
+  jsPsych.randomization.shuffle(FPD.map(function(d,i){return {d:d,n:i+1};})).map(function(o){
+    return '<div class="item" style="border-bottom:none;padding-bottom:2px"><div class="qt"><b>'+o.d+'</b></div></div>'
+      +lik('RLI'+o.n,'',7,'Let it handle it on its own','I would check it myself');
+  }).join(''),
+  'reliance','보조/행동 DV — 위임 vs 직접확인(reliance intention)');
+const funnelForm={type:jsPsychSurveyHtmlForm,data:{phase:'funnel'},
+  preamble:'<div class="surv"><h3>One last question</h3></div>',
+  html:'<div class="surv"><div class="item"><div class="qt">In your own words, what do you think this study was about?</div><textarea name="SUS_purpose" required style="min-height:80px"></textarea></div></div>',
+  button_label:'Continue',
+  on_load:function(){ bar('Almost done',PROG.f('funnel')); }};
+var SEGS=[
+  ['consent','동의',[consent]],
+  ['howworks','안내(커버스토리)',[instructions]],
+  ['obs','노출(주의·단일 교환)',[expoTrial()]],
+  ['gate','인코딩 게이트',[encodingGate]],
+  ['filler','필러',[fillerForm]],
+  ['construal','정성 구성',[construalForm]],
+  ['agency','행위성(floor 보고)',[agencyForm]],
+  ['godspeed','Godspeed',[godspeedForm]]
+];
+outcomeBlocks.forEach(function(b){
+  var lab=b.n==='locus'?'오류 소재':'예상 지형(보조 DV·보너스)';
+  SEGS.push([b.n,lab,[b.t]]);
+});
+SEGS.push(['reliance','위임/확인(보조 DV)',[relianceForm]],['excus','용서가능성',[excusForm]],['resp','책임귀속',[respForm]],['recall','회상·재인',[recall]],['mc','고지문 점검(세션 말미)',[mcBlock]],['cov','공변인·인구통계',[covForm]],['funnel','퍼널 디브리핑',[funnelForm]],['debrief','디브리핑',[debrief]]);
+PROG.order=SEGS.map(function(s){return s[0];});
+var START=window._DEV?params.get('start'):null, startIdx=0;
+if(START){ for(var si=0;si<SEGS.length;si++){ if(SEGS[si][0]===START){ startIdx=si; break; } } }
+let timeline=[];
+SEGS.slice(startIdx).forEach(function(s){ timeline=timeline.concat(s[2]); });
+if(START) window._trackFocus=true;   // jumped past consent — enable tracking anyway
+
+/* ===== DEV mode (adopted from study2 v9): ?dev=1 — skip forward ===== */
+if(window._DEV){
+  var _skip=function(){ try{ jsPsych.finishTrial({dev_skip:true}); }catch(e){} };
+  document.addEventListener('keydown',function(e){ if(e.key===']'||(e.ctrlKey&&e.key==='ArrowRight')){ e.preventDefault(); _skip(); } });
+  window.addEventListener('load',function(){
+    var b=document.createElement('button'); b.textContent='▶ NEXT ( ] )';
+    b.style.cssText='position:fixed;bottom:14px;right:14px;z-index:99999;background:#b9831f;color:#fff;border:0;border-radius:8px;padding:10px 14px;font:600 13px sans-serif;cursor:pointer;opacity:.92';
+    b.onclick=_skip; document.body.appendChild(b);
+    var t=document.createElement('div'); t.textContent='DEV MODE — '+CELLKEY+' ('+FRAME+'×'+NOUN+') × '+MODE+(START?' — start='+START:'')+' — ▶ NEXT ( ] )';
+    t.style.cssText='position:fixed;top:6px;left:6px;z-index:99999;background:#222;color:#ffd479;font:600 11px sans-serif;padding:4px 8px;border-radius:6px;opacity:.85';
+    document.body.appendChild(t);
+    /* admin jump menus: phase / framing / mode — reloads with chosen params */
+    function mkSel(opts,cur,label,onpick,right){
+      var s=document.createElement('select');
+      s.style.cssText='position:fixed;bottom:14px;right:'+right+'px;z-index:99999;background:#222;color:#ffd479;border:1px solid #b9831f;border-radius:8px;padding:9px 8px;font:600 12px sans-serif;cursor:pointer;opacity:.92;max-width:180px';
+      opts.forEach(function(o){ var op=document.createElement('option'); op.value=o[0]; op.textContent=label+': '+o[1]; if(o[0]===cur) op.selected=true; s.appendChild(op); });
+      s.onchange=function(){ onpick(s.value); }; document.body.appendChild(s);
+    }
+    function reload(kv){
+      var q={dev:'1',cell:CELLKEY,mode:MODE}; if(START) q.start=START;
+      for(var k in kv){ if(kv[k]===null) delete q[k]; else q[k]=kv[k]; }
+      var qs=Object.keys(q).map(function(k){return k+'='+encodeURIComponent(q[k]);}).join('&');
+      location.href=location.pathname+'?'+qs;
+    }
+    mkSel(SEGS.map(function(s){return [s[0],s[1]];}),START||'consent','단계',function(v){ reload({start:v==='consent'?null:v}); },130);
+    mkSel([['am','agent×mistakes'],['ae','agent×errors'],['om','output×mistakes'],['oe','output×errors'],['ctrl','control (no notice)']],CELLKEY,'cell',function(v){ reload({cell:v}); },330);
+  });
+}
+var IS_MOBILE=(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||Math.min(screen.width||9999,screen.height||9999)<700);
+if(IS_MOBILE){
+  document.getElementById('jspsych-target').innerHTML='<div style="font-family:sans-serif;max-width:600px;margin:80px auto;text-align:center;line-height:1.6"><h2>Desktop or laptop required</h2><p>This study needs a larger screen and cannot be completed on a phone or tablet. Please open it on a desktop or laptop computer, or return the study on Prolific.</p></div>';
+}else{ jsPsych.run(timeline); }
+</script>
+</html>
