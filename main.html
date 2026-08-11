@@ -370,7 +370,7 @@ const consent={type:jsPsychSurveyHtmlForm,
   +'<li>Your responses are kept confidential. Your Prolific ID is collected only to confirm completion and arrange payment; it is removed before the data are analysed for research or shared. If you close the window before finishing, your responses are not saved. Because responses are de-identified before analysis, they cannot be individually withdrawn after that point.</li>'
   +'<li>De-identified data are stored securely; study records are kept up to 3 years, and a de-identified dataset may be shared publicly.</li>'
   +'<li>This study has been reviewed by the Public Institutional Review Board (Republic of Korea), approval no. '+CFG.IRB_NUMBER+'. Questions about your rights as a participant: Public IRB (Republic of Korea), +82-2-737-8990.</li></ul>'
-  +'<p><b>Questions or concerns?</b> This research is conducted by Yosan Song (aSSIST, principal investigator; '+CFG.CONTACT_EMAIL+'), with Prof. Sanghyun Kim (aSSIST, co-investigator; '+CFG.CONTACT_EMAIL_CORR+').</p></div>',
+  +'<p><b>Questions or concerns?</b> This research is conducted by Yosan Song ('+CFG.CONTACT_EMAIL+').</p></div>',
   html:'<div class="consent-confirm"><label><input type="checkbox" name="consent" required> I am 18 or older, I have read the information above, and I consent to take part.</label></div>',
   button_label:'Continue', data:{phase:'consent'},
   on_load:function(){ bar('Consent',PROG.f('consent')); },
