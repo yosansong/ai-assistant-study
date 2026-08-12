@@ -77,14 +77,15 @@ function rate(p){return {type:jsPsychSurveyHtmlForm,data:{phase:'rate',phrase_id
   button_label:'Next'};}
 
 var consent={type:jsPsychSurveyHtmlForm,
- preamble:'<div class="wrap"><h2>Wording rating study</h2>'
-  +'<p>You will rate a set of short on-screen notices (the kind shown under AI assistants) on a few scales. It takes about <b>5 minutes</b>. Open to adults 18+ fluent in English.</p>'
-  +'<ul><li>Participation is voluntary; you may stop anytime by closing the window.</li>'
-  +'<li>There are no right or wrong answers — we want your impression of the wording.</li>'
-  +'<li>Responses are anonymous; no name or contact is collected. A de-identified dataset may be shared for research.</li>'
-  +'<li>Reviewed by the Public IRB (Republic of Korea), approval no. '+CFG.IRB_NUMBER+'. Rights questions: +82-2-737-8990.</li></ul>'
-  +'<p>Conducted by Yosan Song (yosansong@gmail.com).</p></div>',
- html:'<div class="wrap"><label><input type="checkbox" name="c" required> I am 18+ and consent to take part.</label></div>',
+ preamble:'<div class="wrap"><h2>AI Notice Wording Survey</h2>'
+  +'<p>This is a short survey about how people read the brief notices shown in AI interfaces. It takes about 5 minutes. It is open to adults residing in the United States who are fluent in English. There is no AI conversation.</p>'
+  +'<ul><li>Participation is voluntary; you may stop at any time by closing the window, with no penalty.</li>'
+  +'<li>There is no physical risk; the survey involves only reading and rating short text.</li>'
+  +'<li>Your responses are anonymous; no name or contact is collected. Your Prolific ID is used only to arrange payment and is removed before analysis. A de-identified dataset with no identifiers may be shared publicly and kept indefinitely.</li>'
+  +'<li>You will be paid through Prolific for completing the survey.</li>'
+  +'<li>Reviewed by the Public IRB (Republic of Korea), approval no. '+CFG.IRB_NUMBER+'. Questions about your rights: +82-2-737-8990.</li></ul>'
+  +'<p>Researcher: Yosan Song (yosansong@gmail.com).</p></div>',
+ html:'<div class="wrap"><label><input type="checkbox" name="c" required> I have read the information above and I consent to take part.</label></div>',
  button_label:'Continue',data:{phase:'consent'}};
 var instr={type:jsPsychSurveyHtmlForm,
  preamble:'<div class="wrap"><h3>Instructions</h3><p>On each screen you will see one short notice phrase. Rate <b>the phrasing itself</b> on five scales (1–7). Judge the wording, not whether AI is generally good or bad. There are no correct answers.</p></div>',

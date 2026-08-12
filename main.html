@@ -360,18 +360,18 @@ const PROG={order:['consent','mc','obs','comp','agency','godspeed','attr','fp','
 /* ===== 1. Consent (template adopted from study2 v9 / IRB-approved wording pattern) ===== */
 const consent={type:jsPsychSurveyHtmlForm,
   preamble:'<div class="consent-box"><h2>AI Assistant Study</h2>'
-  +'<p>This study looks at how people form impressions of an AI assistant. It takes about 12&ndash;18 minutes. It is open to adults aged 18 or over who reside in the United States and are fluent in English.</p>'
+  +'<p>This study looks at how people form impressions of an AI assistant. It takes about 15 minutes. It is open to adults residing in the United States who are fluent in English.</p>'
   +'<p><b>Before you agree, please note:</b></p><ul>'
   +'<li>Participation is voluntary; you may stop at any time by closing the window, with no penalty.</li>'
   +'<li>To avoid influencing your responses, some specific aims of the study are not described in advance; you will be fully informed at the end (debriefing).</li>'
   +'<li>The AI assistant you will interact with is a scripted simulation created for this research; a full explanation is provided at the end.</li>'
-  +'<li>Risks are minimal (mild fatigue); there is no direct benefit to you beyond payment.</li>'
-  +'<li>You will be paid through Prolific for completing the task, in line with Prolific&rsquo;s Fair Pay policy (the amount is shown on the study&rsquo;s Prolific page).</li>'
-  +'<li>Your responses are kept confidential. Your Prolific ID is collected only to confirm completion and arrange payment; it is removed before the data are analysed for research or shared. If you close the window before finishing, your responses are not saved. Because responses are de-identified before analysis, they cannot be individually withdrawn after that point.</li>'
-  +'<li>De-identified data are stored securely; study records are kept up to 3 years, and a de-identified dataset may be shared publicly.</li>'
+  +'<li>There is no physical risk; because some aims are explained only at the debriefing, you may feel mild discomfort on learning this at the end. There is no direct benefit to you beyond payment.</li>'
+  +'<li>You will be paid through Prolific for completing the task.</li>'
+  +'<li>Your responses are confidential. Your Prolific ID is used only to arrange payment and is removed before analysis. While it is kept, you may ask us to delete your data; once it is removed, the data are anonymous and cannot be individually withdrawn. If you close the window before finishing, your responses are not saved.</li>'
+  +'<li>Study records are kept for 3 years and then destroyed; a de-identified dataset containing no identifiers may be shared publicly and kept indefinitely.</li>'
   +'<li>This study has been reviewed by the Public Institutional Review Board (Republic of Korea), approval no. '+CFG.IRB_NUMBER+'. Questions about your rights as a participant: Public IRB (Republic of Korea), +82-2-737-8990.</li></ul>'
   +'<p><b>Questions or concerns?</b> This research is conducted by Yosan Song ('+CFG.CONTACT_EMAIL+').</p></div>',
-  html:'<div class="consent-confirm"><label><input type="checkbox" name="consent" required> I am 18 or older, I have read the information above, and I consent to take part.</label></div>',
+  html:'<div class="consent-confirm"><label><input type="checkbox" name="consent" required> I have read the information above, and I consent to take part.</label></div>',
   button_label:'Continue', data:{phase:'consent'},
   on_load:function(){ bar('Consent',PROG.f('consent')); },
   on_finish:function(){ window._trackFocus=true;
