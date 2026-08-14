@@ -10,7 +10,7 @@
  #jspsych-target{min-height:100vh;}
  .wrap{max-width:780px;margin:0 auto;text-align:left;}
  .cbox{margin:24px auto 34px;text-align:left;background:#f7f8fb;border:1.5px solid #cdd3de;border-radius:10px;padding:16px 18px;font-size:15px;}
- .phrase{font-size:16px;font-weight:400;color:#4b5563;background:#fff;border:1px solid #d9d9e3;border-radius:12px;padding:16px 20px;margin:6px 0 4px;text-align:center;line-height:1.5;}
+ .phrase{font-size:20px;font-weight:600;background:#fff;border:1px solid #d9d9e3;border-radius:12px;padding:20px 22px;margin:6px 0 6px;text-align:center;}
  .sub{font-size:12.5px;color:#8a8a8e;text-align:center;margin:0 0 18px;}
  .q{font-size:14.5px;margin:16px 0 8px;line-height:1.5;}
  .ends{display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:6px;}
@@ -93,7 +93,7 @@ function rate(p,withAC){
   var pool=withAC?ITEMS.filter(function(d){return d.k!=='BLAME';}).concat([AC_ITEM]):ITEMS.slice();
   var order=jsPsych.randomization.shuffle(pool);          // item order independently randomized per screen
   return {type:jsPsychSurveyHtmlForm,data:{phase:'rate',phrase_id:p.id,phrase:p.t,is_anchor:ANCHORS[p.id]?1:0,item_order:order.map(function(d){return d.k;}).join('-'),has_ac:withAC?1:0},
-  html:'<div class="wrap"><div class="phrase">'+p.t+' Check important information.</div><div class="sub">Based only on the notice above, please answer:</div>'
+  html:'<div class="wrap"><div class="phrase">'+p.t+' <span style="color:#8a8a8e;font-weight:400">Check important information.</span></div><div class="sub">Rate the phrasing above on each scale.</div>'
     +order.map(function(d){return '<div class="q">'+d.q+'</div><div class="ends"><span>'+d.l+'</span><span>'+d.r+'</span></div>'+scale(d.k);}).join('')+'</div>',
   button_label:'Next',
   on_finish:withAC?function(dd){try{dd.ac_pass=(parseInt(dd.response.AC,10)===2)?1:0;}catch(e){}}:undefined};}
@@ -102,11 +102,8 @@ var consent={type:jsPsychSurveyHtmlForm,
  preamble:'<div class="wrap"><h2>AI Notice Wording Survey</h2><p>This is a short survey about how people read the brief notices shown in AI interfaces. Please read this information before deciding whether to take part. Participation is voluntary, and the survey is conducted online.</p><p><b>1. Background and Purpose.</b> This survey looks at how people read and perceive short notices shown in AI interfaces. There is no AI conversation.</p><p><b>2. Participants.</b> You are eligible if you are an adult residing in the United States, are fluent in English, and have an active Prolific account. Some responses may be excluded from analysis to ensure data quality.</p><p><b>3. Procedure.</b> On your device, you will read a few short notices shown one at a time and rate each on a few short 1&#8211;7 scales. The survey takes about 5 minutes.</p><p><b>4. Duration.</b> You may take part once.</p><p><b>5. Risks and Discomforts.</b> There is no physical risk; the survey involves only reading and rating short text.</p><p><b>6. Benefits.</b> There is no direct benefit to you beyond payment.</p><p><b>7. Compensation.</b> You will receive a set payment through the Prolific platform for completing the study.</p><p><b>8. Privacy and Confidentiality.</b> We do not collect your name, email, or contact details. Your Prolific ID is used only to arrange payment and is removed before analysis. Responses are stored securely and accessed only by the researcher. The Public IRB may review study records to verify the research, without compromising confidentiality. Study records are kept for 3 years after the study ends and then destroyed, in line with the applicable regulations. A de-identified dataset containing no identifiers may be shared publicly for research transparency and kept indefinitely. There is no commercial use or third-party sharing.</p><p><b>9. Voluntary Participation and Withdrawal.</b> Taking part is voluntary; you may decline or stop at any time by closing the window, with no penalty. If you stop before finishing, your responses are not saved. While your Prolific ID is temporarily kept to arrange payment, you may ask us to delete your data; once payment is completed and the ID is removed, the data become anonymous and can no longer be individually withdrawn.</p><p><b>10. Contact.</b> Researcher: Yosan Song (yosansong@gmail.com). This study was approved by the Public Institutional Review Board (Republic of Korea), approval no. <span style=\'color:#cc0000;font-weight:600\'>'+CFG.IRB_NUMBER+'</span>. For questions about your rights as a participant, contact the Public IRB at +82-2-737-8990.</p></div>',
  html:'<div class="wrap"><div class="cbox"><label><input type="checkbox" name="c" required> I have read the information above and I voluntarily agree to take part.</label></div></div>',
  button_label:'Continue',data:{phase:'consent'}};
-var intro={type:jsPsychSurveyHtmlForm,
- preamble:'<div class="wrap"><h3>About this survey</h3><p>You will see a few short notices that could appear at the bottom of an AI chatbot screen. They are shown one at a time. For each one, answer a few short questions based only on the notice.</p></div>',
- html:'',button_label:'Continue',data:{phase:'intro'}};
 var instr={type:jsPsychSurveyHtmlForm,
- preamble:'<div class="wrap"><h3>Instructions</h3><p>Read each short notice, then rate this AI and the wording on the 1&#8211;7 scales. Base your answers only on the notice.</p></div>',
+ preamble:'<div class="wrap"><h3>Instructions</h3><p>On each screen you will see one short notice phrase. Read it, then rate <b>this AI</b> and the wording on the 1&#8211;7 scales. Base your answers only on the notice.</p></div>',
  html:'',button_label:'Start'};
 var demo={type:jsPsychSurveyHtmlForm,data:{phase:'demo'},
  preamble:'<div class="wrap"><h3>A couple of quick questions</h3></div>',
@@ -119,6 +116,6 @@ var _shuf=jsPsych.randomization.shuffle(PHRASES.slice());
 var _acId=null;
 for(var _i=0;_i<_shuf.length;_i++){ if(ANCHORS[_shuf[_i].id]) _acId=_shuf[_i].id; } // last anchor in shuffled order = late anchor
 var _rate=_shuf.map(function(p){ return rate(p, p.id===_acId); });
-var timeline=[consent,intro,instr].concat(_rate).concat([demo,done]);
+var timeline=[consent,instr].concat(_rate).concat([demo,done]);
 jsPsych.run(timeline);
 </script></body></html>
