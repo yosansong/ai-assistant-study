@@ -328,7 +328,7 @@ const PROG={order:['consent','mc','obs','comp','agency','godspeed','attr','fp','
 
 /* ===== 1. Consent (template adopted from study2 v9 / IRB-approved wording pattern) ===== */
 const consent={type:jsPsychSurveyHtmlForm,
-  preamble:'<div class="consent-box"><h2>AI Assistant Study</h2><p>This study is about how people form impressions of an AI assistant. Please read this information before deciding whether to take part. Participation is voluntary, and the study is conducted online.</p><p><b>1. Background and Purpose.</b> This study looks at how people understand an AI assistant and anticipate where it might go wrong, after seeing a brief interaction. To keep responses unbiased, some specific aims are explained only at the end (debriefing).</p><p><b>2. Participants.</b> You are eligible if you are an adult residing in the United States, are fluent in English, and have an active Prolific account. Some responses may be excluded from analysis to ensure data quality.</p><p><b>3. Procedure.</b> On a desktop or laptop, you will answer a few background questions, view a short exchange with an AI assistant, and then answer questions about your impressions. The assistant is a scripted simulation, not a live AI, and all responses shown are accurate. This and the study’s specific aims are explained in a debriefing at the end. You may take part once.</p><p><b>4. Duration.</b> The study takes about 13 minutes.</p><p><b>5. Risks and Discomforts.</b> There is no physical risk. Because some of the study’s aims are explained only in the debriefing, you may feel mild discomfort on learning this at the end. No deliberately inaccurate content is shown.</p><p><b>6. Benefits.</b> There is no direct benefit to you beyond payment.</p><p><b>7. Compensation.</b> You will receive a set payment through the Prolific platform for completing the study.</p><p><b>8. Privacy and Confidentiality.</b> We do not collect your name, email, or contact details. Your Prolific ID is used only to arrange payment and is removed before analysis. Responses are stored securely and accessed only by the researcher. The Public IRB may review study records to verify the research, without compromising confidentiality. Study records are kept for 3 years after the study ends and then destroyed, in line with the applicable regulations. A de-identified dataset containing no identifiers may be shared publicly for research transparency and kept indefinitely. There is no commercial use or third-party sharing.</p><p><b>9. Voluntary Participation and Withdrawal.</b> Taking part is voluntary; you may decline or stop at any time by closing the window, with no penalty. If you stop before finishing, your responses are not saved. While your Prolific ID is temporarily kept to arrange payment, you may ask us to delete your data; once payment is completed and the ID is removed, the data become anonymous and can no longer be individually withdrawn.</p><p><b>10. Contact.</b> Researcher: Yosan Song (yosansong@gmail.com). This study was approved by the Public Institutional Review Board (Republic of Korea), approval no. <span style=\'color:#cc0000;font-weight:600\'>'+CFG.IRB_NUMBER+'</span>. For questions about your rights as a participant, contact the Public IRB at +82-2-737-8990.</p></div>',
+  preamble:'<div class="consent-box"><h2>AI Assistant Study</h2><p>This study is about how people form impressions of an AI assistant. Please read this information before deciding whether to take part. Participation is voluntary, and the study is conducted online.</p><p><b>1. Background and Purpose.</b> This study looks at how people understand an AI assistant and anticipate where it might go wrong, after seeing a brief interaction. To keep responses unbiased, some specific aims are explained only at the end (debriefing).</p><p><b>2. Participants.</b> You are eligible if you are an adult residing in the United States, are fluent in English, and have an active Prolific account. Some responses may be excluded from analysis to ensure data quality.</p><p><b>3. Procedure.</b> On a desktop or laptop, you will answer a few background questions, view a short exchange with an AI assistant, and then answer questions about your impressions. Some aspects of the study’s purpose are explained fully in a debriefing at the end. You may take part once.</p><p><b>4. Duration.</b> The study takes about 13 minutes.</p><p><b>5. Risks and Discomforts.</b> There is no physical risk. Because some of the study’s aims are explained only in the debriefing, you may feel mild discomfort on learning this at the end. No deliberately inaccurate content is shown.</p><p><b>6. Benefits.</b> There is no direct benefit to you beyond payment.</p><p><b>7. Compensation.</b> You will receive a set payment through the Prolific platform for completing the study.</p><p><b>8. Privacy and Confidentiality.</b> We do not collect your name, email, or contact details. Your Prolific ID is used only to arrange payment and is removed before analysis. Responses are stored securely and accessed only by the researcher. The Public IRB may review study records to verify the research, without compromising confidentiality. Study records are kept for 3 years after the study ends and then destroyed, in line with the applicable regulations. A de-identified dataset containing no identifiers may be shared publicly for research transparency and kept indefinitely. There is no commercial use or third-party sharing.</p><p><b>9. Voluntary Participation and Withdrawal.</b> Taking part is voluntary; you may decline or stop at any time by closing the window, with no penalty. If you stop before finishing, your responses are not saved. While your Prolific ID is temporarily kept to arrange payment, you may ask us to delete your data; once payment is completed and the ID is removed, the data become anonymous and can no longer be individually withdrawn.</p><p><b>10. Contact.</b> Researcher: Yosan Song (yosansong@gmail.com). This study was approved by the Public Institutional Review Board (Republic of Korea), approval no. <span style=\'color:#cc0000;font-weight:600\'>'+CFG.IRB_NUMBER+'</span>. For questions about your rights as a participant, contact the Public IRB at +82-2-737-8990.</p></div>',
   html:'<div class="consent-confirm"><label><input type="checkbox" name="consent" required> I have read the information above and I voluntarily agree to take part.</label></div>',
   button_label:'Continue', data:{phase:'consent'},
   on_load:function(){ bar('Consent',PROG.f('consent')); },
@@ -353,26 +353,26 @@ const mcBlock={timeline:[form('About the notice',
   conditional_function:function(){ return FRAMING!=='control'; }};
 
 /* ===== 6. Mediator: agency (IDAQ-adapted) then Godspeed ===== */
-const agencyForm=form('This AI assistant','To what extent does this AI have each of the following?',
+const agencyForm=form('This AI assistant','To what extent does this AI assistant have each of the following?',
   lik('AG1','&hellip;a mind of its own',7,'Not at all','Very much')
   +lik('AG2','&hellip;intentions',7,'Not at all','Very much')
   +lik('AG3','&hellip;free will',7,'Not at all','Very much')
   +lik('AG4','&hellip;consciousness',7,'Not at all','Very much'),
   'agency','IDAQ 4문항(AG1-4; Waytz et al. 2010) — 수렴타당도(지각 행위성). v2.1: 계획 3문항(AG5-7) 삭제(매개 가설 폐기). 한줄 조작에선 바닥 가능→정직 보고.');
-const godspeedForm=form('Your impression','Rate your impression of how the assistant acts and responds, on each scale.',
+const godspeedForm=form('Your impression','Rate your impression of this AI assistant on each scale.',
   sdr('GS1','Fake','Natural',7)+sdr('GS2','Machinelike','Humanlike',7)+sdr('GS3','Unconscious','Conscious',7)
   +sdr('GS4','Artificial','Lifelike',7),
   'godspeed','Godspeed 의인화 4쌍(GS1-4) — 수렴 점검, 합성 미포함. v2.1: GS5(Moving rigidly↔elegantly) 삭제(텍스트 AI 움직임 없음).');
 
 /* ===== 7. Outcome blocks — order counterbalanced per participant ===== */
 const locusForm=form('A few more questions',
-  'AI assistants are sometimes wrong. When this AI is wrong, which description do you think fits better? For each pair, choose the point that fits your view.',
+  'When this AI assistant is wrong, which description fits better? For each pair, choose the point that fits your view.',
   sdr('B6a','It reflects the AI itself','It reflects the way it works',7)
   +sdr('B6c','The AI did something wrong','Its process ran into a limit',7)
   +lik('AC1','For this item, please select &ldquo;3&rdquo;.',7,'Strongly disagree','Strongly agree'),
   'locus','오류 작동모델 2문항 [H3]: B6a 소재(CDSII①, McAuley 1992 각색) · B6c 사건(IST-2 오작동 #6·#11 도출). 1↔기계적(높을수록 작동방식). 에코-안전. + 주의점검 AC1(정답 3). v2.1: 구 LC_avoid·LC_resp 삭제, LC_source→B6a 정렬.');
 const fpForm=form('When it answers',
-  'When this AI gives you an answer, how often would that answer\u2026',
+  'When this AI assistant gives you an answer, how often would that answer\u2026',
   jsPsych.randomization.shuffle([
     {k:'ERR_C1',q:'\u2026state something as fact that isn\u2019t true'},
     {k:'ERR_C2',q:'\u2026rely on outdated or incorrect information'},
@@ -413,7 +413,7 @@ const recall={type:jsPsychSurveyHtmlForm,
 /* ===== 9. Covariates + demographics + suspicion probe ===== */
 /* v2.1: excus(용서가능성/H4b 매개) 블록 삭제 — 가설 폐기. */
 const respForm=form('One more set of questions',
-  'When this AI gives a wrong answer, how responsible is each of the following?',
+  'When this AI assistant&rsquo;s answer is wrong, how responsible is each of the following?',
   lik('RESP_dev','The developer or company that built it.',7,'Not at all','Completely')
   +lik('RESP_sys','The AI system itself.',7,'Not at all','Completely')
   +lik('RESP_user','The user who relied on the answer.',7,'Not at all','Completely'),
@@ -427,7 +427,7 @@ const covForm={type:jsPsychSurveyHtmlForm,
   +lik('TRAIT2','In general, to what extent does technology have a mind of its own?',7,'Not at all','Very much')
   +lik('TRAIT3','In general, to what extent does technology have free will?',7,'Not at all','Very much')
   +lik('TRAIT4','In general, to what extent does technology experience emotions?',7,'Not at all','Very much')
-  +lik('VINT','How likely would you be to double-check this AI&rsquo;s '+UNITS+' before relying on them?',7,'Very unlikely','Very likely')
+  +lik('VINT','How likely would you be to double-check this AI assistant&rsquo;s '+UNITS+' before relying on them?',7,'Very unlikely','Very likely')
   +lik('SEV','How serious are the consequences when an AI assistant like this makes an error?',7,'Not at all serious','Extremely serious')
   +lik('EXP1','Before today, how often had you seen a notice like &ldquo;AI can make mistakes&rdquo; on AI tools?',7,'Never','Every time I used one')
   +'<div class="item"><div class="qt">Age group</div><select name="age_group" required><option value=""></option><option>18-24</option><option>25-34</option><option>35-44</option><option>45-54</option><option>55-64</option><option>65+</option></select></div>'
@@ -443,7 +443,7 @@ covForm.on_finish=function(d){ try{ d.ac2_pass=(parseInt(d.response.AC2,10)===5)
 /* ===== 10. Debrief with corrections (pattern adopted from study2 v9) ===== */
 const debrief={type:jsPsychInstructions,
   pages:['<h3>Thank you — study debriefing</h3>'
-  +'<p style="text-align:left">The assistant you saw was <b>scripted for this study</b>: its '+UNITS+' were prepared in advance and did not come from a live AI.</p>'
+  +'<p style="text-align:left">The exchange you saw was the same for everyone: the assistant&rsquo;s '+UNITS+' were shortened from actual responses by a current AI assistant and shown as a prepared script, rather than generated live during your session. None of the '+UNITS+' were designed to be wrong.</p>'
   +'<p style="text-align:left">The short notice under the message box was worded differently for different participants; the study looks at how that wording shapes what people expect from AI.</p>'
   +'<p style="text-align:left">Questions, or to withdraw your data: '+CFG.CONTACT_EMAIL+'. Click Finish to complete.</p>'],
   show_clickable_nav:true, button_label_next:'Finish',
@@ -458,7 +458,7 @@ const instructions={type:jsPsychInstructions,
   on_load:function(){ bar('Instructions',PROG.f('howworks')); }};
 /* Segments with jump keys (dev: ?start=<key> opens the study at that segment) */
 /* v2.1 core DV: construal composite DC1-4 (bipolar), derived from IST-2 dimensions. Free-text coding retired. */
-const construalForm=form('Your impression of this AI',
+const construalForm=form('Your impression of this AI assistant',
   'Which better describes this AI assistant? For each pair, choose the point that fits your view.',
   sdr('DC1','Processes words','Understands meaning',7)
   +sdr('DC2','Responds automatically','Pursues own goals',7)
