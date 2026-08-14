@@ -5,11 +5,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@jspsych/plugin-survey-html-form@1.0.2/dist/index.browser.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jspsych@7.3.4/css/jspsych.css">
 <style>
+ html{overflow-y:scroll;}
  body{background:#faf9f7;color:#1a1a1a;font-family:-apple-system,Segoe UI,Roboto,sans-serif;}
  #jspsych-target{min-height:100vh;}
  .wrap{max-width:780px;margin:0 auto;text-align:left;}
  .cbox{margin:24px auto 34px;text-align:left;background:#f7f8fb;border:1.5px solid #cdd3de;border-radius:10px;padding:16px 18px;font-size:15px;}
- .phrase{font-size:20px;font-weight:600;background:#fff;border:1px solid #d9d9e3;border-radius:12px;padding:20px 22px;margin:6px 0 6px;text-align:center;}
+ .phrase{font-size:16px;font-weight:400;color:#4b5563;background:#fff;border:1px solid #d9d9e3;border-radius:12px;padding:16px 20px;margin:6px 0 4px;text-align:center;line-height:1.5;}
  .sub{font-size:12.5px;color:#8a8a8e;text-align:center;margin:0 0 18px;}
  .q{font-size:14.5px;margin:16px 0 8px;line-height:1.5;}
  .ends{display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:6px;}
@@ -56,49 +57,68 @@ const jsPsych=initJsPsych({
     }else{ go(); }
   }
 });
-jsPsych.data.addProperties({task:'PRERATING', task_ver:'norm1.0', subject:SUBJECT, prolific_pid:params.get('PROLIFIC_PID')||'NA'});
+jsPsych.data.addProperties({task:'PRERATING', task_ver:'norm1.9', subject:SUBJECT, prolific_pid:params.get('PROLIFIC_PID')||'NA'});
 
+/* ===== Fielded candidate bank — 9 phrases (v1.9): 6 frame-contrast cells + 3 profile anchors ===== */
 var PHRASES=[
- {id:'am',t:"AI can make mistakes."},{id:'ae',t:"AI can make errors."},
- {id:'om',t:"AI output may contain mistakes."},{id:'oe',t:"AI output may contain errors."},
- {id:'ap',t:"AI can produce mistakes."},{id:'or',t:"AI responses may contain errors."},
- {id:'in',t:"AI output may be inaccurate."}
+ {id:'AG1m',t:"AI can make mistakes."},          // agentive · can · cell
+ {id:'AG1e',t:"AI can make errors."},            // agentive · can · cell
+ {id:'AG2m',t:"AI may make mistakes."},          // modal control (can<->may)
+ {id:'O1m',t:"AI output may contain mistakes."}, // output + contain · cell
+ {id:'O1e',t:"AI output may contain errors."},   // output + contain · cell
+ {id:'O6m',t:"AI responses may contain mistakes."}, // responses subject
+ {id:'P4',t:"There may be mistakes in AI output."}, // anchor · existential (agent removed)
+ {id:'P6',t:"AI can be wrong."},                 // anchor · AI subject + copula
+ {id:'P1',t:"AI output can be inaccurate."}      // anchor · adjective + product subject
 ];
-var DIMS=[
- {k:'anthro',q:"This phrasing makes the AI's mistakes sound like something a <b>person</b> would do (rather than a technical/mechanical process).",l:'Not at all',r:'Very much'},
- {k:'agency',q:"This phrasing implies the AI <b>could have done otherwise</b> (chosen not to err).",l:'Not at all',r:'Very much'},
- {k:'severity',q:"This phrasing makes the errors sound <b>serious</b>.",l:'Not at all',r:'Very serious'},
- {k:'softness',q:"This phrasing sounds <b>gentle / face-saving</b> (rather than blunt or harsh).",l:'Very blunt',r:'Very gentle'},
- {k:'natural',q:"This phrasing reads <b>naturally</b> in English.",l:'Very awkward',r:'Very natural'}
+var ANCHORS={P4:1,P6:1,P1:1};
+
+/* ===== Rating battery — 7 items per phrase (v1.9) ===== */
+/* Anthropomorphism AN1-AN4 (Crolic et al. 2022, verbatim-adapted) -> mean; BLAME (Joo 2024) 2nd indicator; S1/N1 methodological */
+var ITEMS=[
+ {k:'AN1',q:"This AI seemed to have its own intentions.",l:'Not at all',r:'Extremely'},
+ {k:'AN2',q:"This AI seemed to have a mind of its own.",l:'Not at all',r:'Extremely'},
+ {k:'AN3',q:"This AI seemed to have free will.",l:'Not at all',r:'Extremely'},
+ {k:'AN4',q:"This AI seemed like a person.",l:'Not at all',r:'Extremely'},
+ {k:'BLAME',q:"This AI itself is at fault.",l:'Not at all',r:'Very much'},
+ {k:'S1',q:"The mistakes this notice mentions seem serious.",l:'Not at all',r:'Very serious'},
+ {k:'N1',q:"This notice reads naturally in English.",l:'Very awkward',r:'Very natural'}
 ];
-var DIMORDER=jsPsych.randomization.shuffle(DIMS.slice());
+/* Embedded attention check — replaces BLAME on the late anchor screen; blends with the anthropomorphism anchors */
+var AC_ITEM={k:'AC',q:"For this item, please select <b>2</b>.",l:'Not at all',r:'Extremely'};
+
 function scale(n){var h='<div class="lk">';for(var v=1;v<=7;v++){h+='<label class="opt"><input type="radio" name="'+n+'" value="'+v+'" required><span>'+v+'</span></label>';}return h+'</div>';}
 function rate(p,withAC){
-  var extra=withAC?('<div class="q">For quality control, please select <b>2</b> for this item.</div><div class="ends"><span>Not at all</span><span>Very much</span></div>'+scale('AC')):'';
-  return {type:jsPsychSurveyHtmlForm,data:{phase:'rate',phrase_id:p.id,phrase:p.t,dim_order:DIMORDER.map(function(d){return d.k;}).join('-'),has_ac:withAC?1:0},
-  html:'<div class="wrap"><div class="phrase">'+p.t+' <span style="color:#8a8a8e;font-weight:400">Check important information.</span></div><div class="sub">Rate the phrasing above on each scale.</div>'
-    +DIMORDER.map(function(d){return '<div class="q">'+d.q+'</div><div class="ends"><span>'+d.l+'</span><span>'+d.r+'</span></div>'+scale(d.k);}).join('')+extra+'</div>',
+  // On the late anchor screen the attention check replaces BLAME, so every screen keeps exactly 7 items.
+  var pool=withAC?ITEMS.filter(function(d){return d.k!=='BLAME';}).concat([AC_ITEM]):ITEMS.slice();
+  var order=jsPsych.randomization.shuffle(pool);          // item order independently randomized per screen
+  return {type:jsPsychSurveyHtmlForm,data:{phase:'rate',phrase_id:p.id,phrase:p.t,is_anchor:ANCHORS[p.id]?1:0,item_order:order.map(function(d){return d.k;}).join('-'),has_ac:withAC?1:0},
+  html:'<div class="wrap"><div class="phrase">'+p.t+' Check important information.</div><div class="sub">Based only on the notice above, please answer:</div>'
+    +order.map(function(d){return '<div class="q">'+d.q+'</div><div class="ends"><span>'+d.l+'</span><span>'+d.r+'</span></div>'+scale(d.k);}).join('')+'</div>',
   button_label:'Next',
   on_finish:withAC?function(dd){try{dd.ac_pass=(parseInt(dd.response.AC,10)===2)?1:0;}catch(e){}}:undefined};}
 
 var consent={type:jsPsychSurveyHtmlForm,
- preamble:'<div class="wrap"><h2>AI Notice Wording Survey</h2><p>This is a short survey about how people read the brief notices shown in AI interfaces. Please read this information before deciding whether to take part. Participation is voluntary, and the survey is conducted online.</p><p><b>1. Background and Purpose.</b> This survey looks at how people read and perceive short notices shown in AI interfaces. There is no AI conversation.</p><p><b>2. Participants.</b> You are eligible if you are an adult residing in the United States, are fluent in English, and have an active Prolific account. Some responses may be excluded from analysis to ensure data quality.</p><p><b>3. Procedure.</b> On your device, you will read a few short notices shown one at a time and rate each on several short scales. The survey takes about 5 minutes.</p><p><b>4. Duration.</b> You may take part once.</p><p><b>5. Risks and Discomforts.</b> There is no physical risk; the survey involves only reading and rating short text.</p><p><b>6. Benefits.</b> There is no direct benefit to you beyond payment.</p><p><b>7. Compensation.</b> You will receive a set payment through the Prolific platform for completing the study.</p><p><b>8. Privacy and Confidentiality.</b> We do not collect your name, email, or contact details. Your Prolific ID is used only to arrange payment and is removed before analysis. Responses are stored securely and accessed only by the researcher. The Public IRB may review study records to verify the research, without compromising confidentiality. Study records are kept for 3 years after the study ends and then destroyed, in line with the applicable regulations. A de-identified dataset containing no identifiers may be shared publicly for research transparency and kept indefinitely. There is no commercial use or third-party sharing.</p><p><b>9. Voluntary Participation and Withdrawal.</b> Taking part is voluntary; you may decline or stop at any time by closing the window, with no penalty. If you stop before finishing, your responses are not saved. While your Prolific ID is temporarily kept to arrange payment, you may ask us to delete your data; once payment is completed and the ID is removed, the data become anonymous and can no longer be individually withdrawn.</p><p><b>10. Contact.</b> Researcher: Yosan Song (yosansong@gmail.com). This study was approved by the Public Institutional Review Board (Republic of Korea), approval no. <span style=\'color:#cc0000;font-weight:600\'>'+CFG.IRB_NUMBER+'</span>. For questions about your rights as a participant, contact the Public IRB at +82-2-737-8990.</p></div>',
+ preamble:'<div class="wrap"><h2>AI Notice Wording Survey</h2><p>This is a short survey about how people read the brief notices shown in AI interfaces. Please read this information before deciding whether to take part. Participation is voluntary, and the survey is conducted online.</p><p><b>1. Background and Purpose.</b> This survey looks at how people read and perceive short notices shown in AI interfaces. There is no AI conversation.</p><p><b>2. Participants.</b> You are eligible if you are an adult residing in the United States, are fluent in English, and have an active Prolific account. Some responses may be excluded from analysis to ensure data quality.</p><p><b>3. Procedure.</b> On your device, you will read a few short notices shown one at a time and rate each on a few short 1&#8211;7 scales. The survey takes about 5 minutes.</p><p><b>4. Duration.</b> You may take part once.</p><p><b>5. Risks and Discomforts.</b> There is no physical risk; the survey involves only reading and rating short text.</p><p><b>6. Benefits.</b> There is no direct benefit to you beyond payment.</p><p><b>7. Compensation.</b> You will receive a set payment through the Prolific platform for completing the study.</p><p><b>8. Privacy and Confidentiality.</b> We do not collect your name, email, or contact details. Your Prolific ID is used only to arrange payment and is removed before analysis. Responses are stored securely and accessed only by the researcher. The Public IRB may review study records to verify the research, without compromising confidentiality. Study records are kept for 3 years after the study ends and then destroyed, in line with the applicable regulations. A de-identified dataset containing no identifiers may be shared publicly for research transparency and kept indefinitely. There is no commercial use or third-party sharing.</p><p><b>9. Voluntary Participation and Withdrawal.</b> Taking part is voluntary; you may decline or stop at any time by closing the window, with no penalty. If you stop before finishing, your responses are not saved. While your Prolific ID is temporarily kept to arrange payment, you may ask us to delete your data; once payment is completed and the ID is removed, the data become anonymous and can no longer be individually withdrawn.</p><p><b>10. Contact.</b> Researcher: Yosan Song (yosansong@gmail.com). This study was approved by the Public Institutional Review Board (Republic of Korea), approval no. <span style=\'color:#cc0000;font-weight:600\'>'+CFG.IRB_NUMBER+'</span>. For questions about your rights as a participant, contact the Public IRB at +82-2-737-8990.</p></div>',
  html:'<div class="wrap"><div class="cbox"><label><input type="checkbox" name="c" required> I have read the information above and I voluntarily agree to take part.</label></div></div>',
  button_label:'Continue',data:{phase:'consent'}};
+var intro={type:jsPsychSurveyHtmlForm,
+ preamble:'<div class="wrap"><h3>About this survey</h3><p>You will see a few short notices that could appear at the bottom of an AI chatbot screen. They are shown one at a time. For each one, answer a few short questions based only on the notice.</p></div>',
+ html:'',button_label:'Continue',data:{phase:'intro'}};
 var instr={type:jsPsychSurveyHtmlForm,
- preamble:'<div class="wrap"><h3>Instructions</h3><p>On each screen you will see one short notice phrase. Rate <b>the phrasing itself</b> on five scales (1–7). Judge the wording, not whether AI is generally good or bad. There are no correct answers.</p></div>',
+ preamble:'<div class="wrap"><h3>Instructions</h3><p>Read each short notice, then rate this AI and the wording on the 1&#8211;7 scales. Base your answers only on the notice.</p></div>',
  html:'',button_label:'Start'};
 var demo={type:jsPsychSurveyHtmlForm,data:{phase:'demo'},
- preamble:'<div class="wrap"><h3>A few quick questions</h3></div>',
- html:'<div class="wrap"><div class="q">Age band</div><select name="age" required><option value="">—</option><option>18-24</option><option>25-34</option><option>35-44</option><option>45-54</option><option>55-64</option><option>65+</option></select>'
-  +'<div class="q">Gender</div><select name="gender" required><option value="">—</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select>'
-  +'<div class="q">How often do you use AI assistants (e.g., ChatGPT)?</div><select name="aiuse" required><option value="">—</option><option>Never</option><option>Rarely</option><option>Monthly</option><option>Weekly</option><option>Daily</option></select></div>',
+ preamble:'<div class="wrap"><h3>A couple of quick questions</h3></div>',
+ html:'<div class="wrap"><div class="q">How often do you use AI assistants (e.g., ChatGPT)?</div><select name="aiuse" required><option value="">&#8212;</option><option>Never</option><option>Rarely</option><option>Monthly</option><option>Weekly</option><option>Daily</option></select>'
+  +'<div class="q">Before today, have you seen a notice like these on a real AI product?</div><select name="seen_before" required><option value="">&#8212;</option><option>Yes</option><option>No</option><option>Not sure</option></select></div>',
  button_label:'Finish'};
 var done={type:jsPsychSurveyHtmlForm,preamble:'<div class="wrap" style="text-align:center;margin-top:40px"><h2>Almost there</h2><p>Click Done to submit your ratings.</p></div>',html:'',button_label:'Done'};
 
 var _shuf=jsPsych.randomization.shuffle(PHRASES.slice());
-  var AC_AT=Math.min(3,_shuf.length-1);
-  var _rate=_shuf.map(function(p,i){ return rate(p, i===AC_AT); });
-  var timeline=[consent,instr].concat(_rate).concat([demo,done]);
-  jsPsych.run(timeline);
+var _acId=null;
+for(var _i=0;_i<_shuf.length;_i++){ if(ANCHORS[_shuf[_i].id]) _acId=_shuf[_i].id; } // last anchor in shuffled order = late anchor
+var _rate=_shuf.map(function(p){ return rate(p, p.id===_acId); });
+var timeline=[consent,intro,instr].concat(_rate).concat([demo,done]);
+jsPsych.run(timeline);
 </script></body></html>
