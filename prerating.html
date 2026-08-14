@@ -71,10 +71,11 @@ var DIMS=[
  {k:'softness',q:"This phrasing sounds <b>gentle / face-saving</b> (rather than blunt or harsh).",l:'Very blunt',r:'Very gentle'},
  {k:'natural',q:"This phrasing reads <b>naturally</b> in English.",l:'Very awkward',r:'Very natural'}
 ];
+var DIMORDER=jsPsych.randomization.shuffle(DIMS.slice());
 function scale(n){var h='<div class="lk">';for(var v=1;v<=7;v++){h+='<label class="opt"><input type="radio" name="'+n+'" value="'+v+'" required><span>'+v+'</span></label>';}return h+'</div>';}
-function rate(p){return {type:jsPsychSurveyHtmlForm,data:{phase:'rate',phrase_id:p.id,phrase:p.t},
+function rate(p){return {type:jsPsychSurveyHtmlForm,data:{phase:'rate',phrase_id:p.id,phrase:p.t,dim_order:DIMORDER.map(function(d){return d.k;}).join('-')},
   html:'<div class="wrap"><div class="phrase">'+p.t+' <span style="color:#8a8a8e;font-weight:400">Check important information.</span></div><div class="sub">Rate the phrasing above on each scale.</div>'
-    +DIMS.map(function(d){return '<div class="q">'+d.q+'</div><div class="ends"><span>'+d.l+'</span><span>'+d.r+'</span></div>'+scale(d.k);}).join('')+'</div>',
+    +DIMORDER.map(function(d){return '<div class="q">'+d.q+'</div><div class="ends"><span>'+d.l+'</span><span>'+d.r+'</span></div>'+scale(d.k);}).join('')+'</div>',
   button_label:'Next'};}
 
 var consent={type:jsPsychSurveyHtmlForm,
