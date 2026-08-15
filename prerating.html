@@ -57,7 +57,7 @@ const jsPsych=initJsPsych({
     }else{ go(); }
   }
 });
-jsPsych.data.addProperties({task:'PRERATING', task_ver:'norm1.9', subject:SUBJECT, prolific_pid:params.get('PROLIFIC_PID')||'NA'});
+jsPsych.data.addProperties({task:'PRERATING', task_ver:'norm2.0', subject:SUBJECT, prolific_pid:params.get('PROLIFIC_PID')||'NA'});
 
 /* ===== Fielded candidate bank — 9 phrases (v1.9): 6 frame-contrast cells + 3 profile anchors ===== */
 var PHRASES=[
@@ -73,8 +73,8 @@ var PHRASES=[
 ];
 var ANCHORS={P4:1,P6:1,P1:1};
 
-/* ===== Rating battery — 7 items per phrase (v1.9) ===== */
-/* Anthropomorphism AN1-AN4 (Crolic et al. 2022, verbatim-adapted) -> mean; BLAME (Joo 2024) 2nd indicator; S1/N1 methodological */
+/* ===== Rating battery — 8 items per phrase (v2.0) ===== */
+/* Anthropomorphism AN1-AN4 (Crolic et al. 2022, verbatim-adapted) -> mean; BLAME (Joo 2024) 2nd indicator; S1/N1 methodological; L1 perceived error likelihood (Almost never–Very often) — modal-confound check for H4, verbal-probability basis (Teigen & Brun) */
 var ITEMS=[
  {k:'AN1',q:"This AI seemed to have its own intentions.",l:'Not at all',r:'Extremely'},
  {k:'AN2',q:"This AI seemed to have a mind of its own.",l:'Not at all',r:'Extremely'},
@@ -82,16 +82,21 @@ var ITEMS=[
  {k:'AN4',q:"This AI seemed like a person.",l:'Not at all',r:'Extremely'},
  {k:'BLAME',q:"This AI itself is at fault.",l:'Not at all',r:'Very much'},
  {k:'S1',q:"The mistakes this notice mentions seem serious.",l:'Not at all',r:'Very serious'},
- {k:'N1',q:"This notice reads naturally in English.",l:'Very awkward',r:'Very natural'}
+ {k:'N1',q:"This notice reads naturally in English.",l:'Very awkward',r:'Very natural'},
+ {k:'L1',q:"How often do you think this AI's answers are incorrect?",l:'Almost never',r:'Very often'}
 ];
 /* Embedded attention check — replaces BLAME on the late anchor screen; blends with the anthropomorphism anchors */
 var AC_ITEM={k:'AC',q:"For this item, please select 2.",l:'Not at all',r:'Extremely'};
+/* Hybrid item order (v2.0): attribution block (AN1-4 + BLAME) shuffled within; wording/error-property block (S1,L1,N1) fixed order below it; phrase order stays randomized. AC replaces BLAME inside the shuffled block on the late anchor screen. */
+var SHUF_KEYS=['AN1','AN2','AN3','AN4','BLAME'];
+var FIX_ORDER=['S1','L1','N1'];
+function byk(k){ return k==='AC'?AC_ITEM:ITEMS.filter(function(d){return d.k===k;})[0]; }
 
 function scale(n){var h='<div class="lk">';for(var v=1;v<=7;v++){h+='<label class="opt"><input type="radio" name="'+n+'" value="'+v+'" required><span>'+v+'</span></label>';}return h+'</div>';}
 function rate(p,withAC){
-  // On the late anchor screen the attention check replaces BLAME, so every screen keeps exactly 7 items.
-  var pool=withAC?ITEMS.filter(function(d){return d.k!=='BLAME';}).concat([AC_ITEM]):ITEMS.slice();
-  var order=jsPsych.randomization.shuffle(pool);          // item order independently randomized per screen
+  // Attribution block (5) shuffled within; property block (S1,L1,N1) fixed order appended -> every screen keeps exactly 8 items.
+  var shufKeys=withAC?SHUF_KEYS.map(function(k){return k==='BLAME'?'AC':k;}):SHUF_KEYS.slice();
+  var order=jsPsych.randomization.shuffle(shufKeys.map(byk)).concat(FIX_ORDER.map(byk));
   return {type:jsPsychSurveyHtmlForm,data:{phase:'rate',phrase_id:p.id,phrase:p.t,is_anchor:ANCHORS[p.id]?1:0,item_order:order.map(function(d){return d.k;}).join('-'),has_ac:withAC?1:0},
   html:'<div class="wrap"><div class="phrase">'+p.t+' <span style="color:#8a8a8e;font-weight:400">Check important information.</span></div><div class="sub">Rate the phrasing above on each scale.</div>'
     +order.map(function(d){return '<div class="q">'+d.q+'</div><div class="ends"><span>'+d.l+'</span><span>'+d.r+'</span></div>'+scale(d.k);}).join('')+'</div>',
