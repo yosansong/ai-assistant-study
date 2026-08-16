@@ -367,10 +367,10 @@ const godspeedForm=form('Your impression','Rate your impression of this AI assis
 /* ===== 7. Outcome blocks — order counterbalanced per participant ===== */
 const locusForm=form('A few more questions',
   'If this AI assistant fails in a future task, which description fits better? For each pair, choose the point that fits your view.',
-  sdr('B6a','It reflects the AI itself','It reflects the way it works',7)
-  +sdr('B6c','The AI did something wrong','Its process ran into a limit',7)
+  sdr('B6a','It reflects the way it works','It reflects the AI itself',7)
+  +sdr('B6c','Its process ran into a limit','The AI did something wrong',7)
   +lik('AC1','For this item, please select &ldquo;3&rdquo;.',7,'Strongly disagree','Strongly agree'),
-  'locus','오류 작동모델 2문항 [H3]: B6a 소재(CDSII①, McAuley 1992 각색) · B6c 사건(IST-2 오작동 #6·#11 도출). 1↔기계적(높을수록 작동방식). 에코-안전. + 주의점검 AC1(정답 3). v2.1: 구 LC_avoid·LC_resp 삭제, LC_source→B6a 정렬.');
+  'locus','오류 작동모델 2문항 [H3]: B6a 소재(CDSII①, McAuley 1992 각색) · B6c 사건(IST-2 오작동 #6·#11 도출). 좌=과정 ↔ 우=행위자, 높을수록 행위자(actor); DC/AG/Godspeed와 방향 일관(higher=agentic). v3.2 좌우 스왑. 에코-안전. + 주의점검 AC1(정답 3). v2.1: 구 LC_avoid·LC_resp 삭제, LC_source→B6a 정렬.');
 const fpForm=form('When it answers',
   'In future interactions, how often do you expect this AI assistant\u2019s answers to\u2026',
   jsPsych.randomization.shuffle([
